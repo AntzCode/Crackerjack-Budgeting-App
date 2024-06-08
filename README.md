@@ -1,2 +1,2 @@
-# Crackerjack-Budget-App
+# Crackerjack-Budgeting-App
 Manage your budgets easily
