@@ -1,0 +1,2 @@
+# 20240608 14:33 create the React Native app
+npx react-native@latest init CrackerjackReactNative --package-name com.antzcode.crackerjack --title "Crackerjack Budget App"
