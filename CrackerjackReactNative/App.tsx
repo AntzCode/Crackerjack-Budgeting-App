@@ -6,113 +6,105 @@
  */
 
 import React from 'react';
-import type {PropsWithChildren} from 'react';
+
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    useColorScheme,
+    View,
+    Text,
+    Image,
+    TouchableOpacity,
+    Alert
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+import TileButton from './src/components/TileButton';
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+    const isDarkMode = useColorScheme() === 'dark';
 
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+    const styles = StyleSheet.create({
+        pageContainer: {
+            display: "flex",
+            backgroundColor: isDarkMode ? "gray" : "lightgray",
+            height: "100%",
+
+        },
+        headerContainer: {
+            width: "100%",
+            height: 120,
+            display: "flex",
+            flexDirection: "row",
+            alignContent: "flex-end",
+            justifyContent: "space-between",
+            paddingHorizontal: 20
+        },
+        headerLogo: {
+            width: 80,
+            height: 120,
+        },
+        headerLogoName: {
+            fontSize: 50,
+            textAlignVertical: "top",
+            color: "#e81800"
+        },
+        heroImageContainer: {
+            display: "flex",
+            flexDirection: 'row',
+            justifyContent: "center",
+            alignContent: "center"
+        },
+        heroImage: {
+            width: 400,
+            height: 300
+        },
+        footerContainer: {
+            height: "30%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "row",
+            alignContent: "space-around",
+            justifyContent: "space-evenly",
+            marginTop: 10,
+            marginBottom: 10
+        },
+        footerContainerButton: {
+            width: "45%"
+        }
+    });
+
+    const backgroundStyle = {
+        backgroundColor: isDarkMode ? "gray" : "lightgray",
+    };
+
+    return (
+        <SafeAreaView style={styles.pageContainer}>
+            <StatusBar
+                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+                backgroundColor={backgroundStyle.backgroundColor}
+            />
+            <View style={styles.headerContainer}>
+                <Image style={styles.headerLogo} source={require(`./src/assets/images/Logo/Crackerjack-Budgie-Large.png`)} />
+                <Text style={styles.headerLogoName}>Crackerjack</Text>
+            </View>
+            <ScrollView contentInsetAdjustmentBehavior="automatic">
+                <View style={styles.heroImageContainer}>
+                    <Image source={require("./src/assets/images/HomePage/BarChart-Example.png")} style={styles.heroImage} />
+                </View>
+            </ScrollView>
+            <View style={styles.footerContainer}>
+                <TouchableOpacity onPress={() => Alert.alert('Spent was pressed')} style={styles.footerContainerButton}>
+                    <TileButton imageSource={require(`./src/assets/images/HomePage/Spent-Large.png`)}>I Spent</TileButton>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => Alert.alert('Earnt was pressed')} style={styles.footerContainerButton}>
+                    <TileButton imageSource={require(`./src/assets/images/HomePage/Earnt-Large.png`)}>I Earnt</TileButton>
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
+    );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;
