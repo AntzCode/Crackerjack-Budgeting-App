@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, View, Text, Image, useColorScheme, DimensionValue } from 'react-native';
+import { DimensionValue, Image, StyleSheet, Text, View, useColorScheme } from 'react-native';
+
+import { brandStyles } from './BrandStyles';
 
 interface propsInterface {
     width?: DimensionValue;
@@ -24,8 +26,8 @@ const TileButton = (props: propsInterface) => {
             flexDirection: "column",
         },
         label: {
-            backgroundColor: "#56fc6b",
-            color: isDarkMode ? "white" : "black",
+            backgroundColor: brandStyles.bright.backgroundColor,
+            color: brandStyles.bright.color,
             fontSize: 30,
             textAlign: "center",
             borderBottomLeftRadius: 10,
@@ -43,7 +45,8 @@ const TileButton = (props: propsInterface) => {
             borderBottomWidth: 0,
             borderTopLeftRadius: 10,
             borderTopRightRadius: 10,
-            backgroundColor: "#009813",
+            backgroundColor: brandStyles.deep.backgroundColor,
+            color: brandStyles.deep.color,
             width: "100%",
             padding: 10,
             display: "flex",
