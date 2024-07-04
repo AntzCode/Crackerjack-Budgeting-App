@@ -1,21 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
+import { ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
 
+import LayoutDefault from './LayoutDefault';
 import { brandStyles } from '../components/BrandStyles';
-import Decimal from '../components/forms/Decimal';
 import Dropdown, { DropdownOptionInterface } from '../components/forms/Dropdown';
+import Decimal from '../components/forms/Decimal';
 import Numeric from '../components/forms/Numeric';
 import Submit from '../components/forms/Submit';
 import Switch from '../components/forms/Switch';
 import TextInput from '../components/forms/TextInput';
+
+import { Income, tablename as incomeTablename, idColumnName as incomeIdColumnName } from '../store/models/Income';
+import { getCurrentBalance } from '../store/models/Transaction';
+import { generateForecasts, generateForecastsRunningBalance } from '../store/models/Forecast';
+import { createRecord } from '../store/database';
 import { paymentFrequencies } from '../constants/time';
-import LayoutDefault from './LayoutDefault';
 
 interface propsInterface {
     navigation: any
-}
-
-const defaultProps = {
 }
 
 const EarntScreen = ({ navigation }: propsInterface) => {
@@ -26,25 +28,57 @@ const EarntScreen = ({ navigation }: propsInterface) => {
     const [amount, setAmount] = useState<number>(0);
     const [description, setDescription] = useState<string>('');
     const [frequency, setFrequency] = useState<DropdownOptionInterface>(paymentFrequencies.getDefault());
-    const [isUnlimitedPaymentsCount, setIsUnlimitedPaymentsCount] = useState<boolean>(true);
+    const [isIndefinite, setIsIndefinite] = useState<boolean>(true);
     const [paymentsCount, setPaymentsCount] = useState<number>(1);
     const [total, setTotal] = useState<number>(0.00);
     // @TODO: user locale configuration
-    const [firstPaymentDate, setFirstPaymentDate] = useState<string>((new Date()).toLocaleDateString('en-NZ'));
+    const [firstPaymentDate, setFirstPaymentDate] = useState<Date>(new Date());
 
     useEffect(() => {
         setTotal(() => {
-            let _total = amount * paymentsCount;
+            let _total = parseFloat(`${amount}`) * parseFloat(`${paymentsCount}`);
             return _total;
         });
     }, [amount, paymentsCount, frequency])
 
-    const processSubmit = () => {
-        Alert.alert('I process the form');
+    const processSubmit = async () => {
+
+        let income = new Income();
+
+        income.paymentAmount = parseFloat(`${amount}`);
+        income.incomeTotal = parseFloat(`${total}`);
+        income.paymentCount = parseFloat(`${paymentsCount}`);
+        income.paymentFrequency = frequency.value;
+        income.description = description;
+        income.firstPaymentDate = firstPaymentDate;
+        income.createdDate = new Date();
+        income.isRecurring = isRecurring;
+        income.isIndefinite = isIndefinite;
+
+        let result = await createRecord(incomeTablename, incomeIdColumnName, income);
+        income.incomeId = result.insertId;
+
+        let balance = await getCurrentBalance();
+
+        await generateForecasts(income);
+        await generateForecastsRunningBalance(balance);
+
+        navigation.goBack();
+
+        // let transaction = new Transaction();
+        // transaction.date = income.createdDate;
+        // transaction.description = income.description;
+        // transaction.amount = income.paymentAmount;
+        // transaction.balance = parseFloat(`${balance}`) + parseFloat(`${income.paymentAmount}`);
+        // transaction.expenseId = result.results.insertId;
+
+        // createRecord(transactionTablename, transactionIdColumnName, transaction);
+
+
     }
 
     return (
-        <LayoutDefault title="Earning">
+        <LayoutDefault title="Earning" navigation={navigation}>
             <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={spentStyles.container}>
 
                 <TextInput label="From what?" value={description} onChangeText={setDescription}></TextInput>
@@ -56,7 +90,7 @@ const EarntScreen = ({ navigation }: propsInterface) => {
                     label="Recurring Income?"
                     onValueChange={setIsRecurring}
                     onTrueContent={<View>
-                        <TextInput label="First Payment Date" value={firstPaymentDate} onChangeText={(_value: string) => setFirstPaymentDate(_value)} />
+                        <TextInput label="First Payment Date" value={firstPaymentDate.toISOString()} onChangeText={(_value: string) => setFirstPaymentDate(new Date(_value))} />
 
                         <Dropdown label="" value={frequency}
                             options={paymentFrequencies.getDropdownOptions()}
@@ -64,12 +98,12 @@ const EarntScreen = ({ navigation }: propsInterface) => {
 
                         <Switch
                             label="Until further notice?"
-                            value={isUnlimitedPaymentsCount}
-                            onValueChange={setIsUnlimitedPaymentsCount}
+                            value={isIndefinite}
+                            onValueChange={(value: boolean) => setIsIndefinite(value)}
 
                         />
 
-                        {isUnlimitedPaymentsCount && <>
+                        {!isIndefinite && <>
                             <Numeric label="Number of Payments" value={paymentsCount} onChangeText={setPaymentsCount} />
                             <Decimal label="Total" value={total} onChangeText={() => { }} readOnly />
                         </>}

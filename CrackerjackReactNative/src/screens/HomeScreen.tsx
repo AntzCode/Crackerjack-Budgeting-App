@@ -4,6 +4,7 @@ import {
     Image,
     ScrollView,
     StyleSheet,
+    Text,
     TouchableOpacity,
     View,
     useColorScheme,
@@ -11,12 +12,10 @@ import {
 
 import TileButton from '../components/TileButton';
 import LayoutDefault from './LayoutDefault';
+import Button from '../components/forms/Button';
 
 interface propsInterface {
     navigation: any
-}
-
-const defaultProps = {
 }
 
 export const HomeScreen = ({ navigation }: propsInterface): React.JSX.Element => {
@@ -25,11 +24,21 @@ export const HomeScreen = ({ navigation }: propsInterface): React.JSX.Element =>
 
     return (
 
-        <LayoutDefault>
+        <LayoutDefault navigation={navigation}>
             <ScrollView contentInsetAdjustmentBehavior="automatic">
                 <View style={homeStyles.heroImageContainer}>
                     <Image source={require("../assets/images/HomePage/BarChart-Example.png")} style={homeStyles.heroImage} />
                 </View>
+                <View>
+                    <Button onPress={() => navigation.push("ScheduledPayments")} text='Scheduled Payments' />
+                </View>
+                <View>
+                    <Button onPress={() => navigation.push("Ledger")} text='Transaction History' />
+                </View>
+                <View>
+                    <Button onPress={() => navigation.push("Forecast")} text='Forecast' />
+                </View>
+                
             </ScrollView>
             <View style={homeStyles.footerContainer}>
                 <TouchableOpacity onPress={() => navigation.push("Spent")} style={homeStyles.footerContainerButton}>

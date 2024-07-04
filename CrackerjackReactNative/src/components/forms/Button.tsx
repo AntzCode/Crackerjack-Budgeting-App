@@ -14,12 +14,17 @@ const Button = (props: propsInterface) => <TouchableOpacity
 
 const buttonStyles = StyleSheet.create({
     button: {
+        // display: inline-block
+        alignSelf: 'flex-start',
         backgroundColor: 'lightblue',
-        padding: 15,
+        textAlign: 'center',
+        paddingVertical: 5,
+        paddingHorizontal: 15,
         fontSize: 24,
         borderWidth: 1,
         borderColor: 'gray',
         borderRadius: 15,
+        width: 'auto'
     }
 });
 
