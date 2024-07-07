@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { get, set } from 'lodash';
 import dateFormat from 'dateformat';
 
@@ -9,7 +9,9 @@ import { CurrencyFormat } from "../components/CurrencyFormat";
 
 import { Forecast } from "../store/models/Forecast";
 import { db } from "../store/database";
-
+import { TabView, SceneMap } from 'react-native-tab-view';
+import { brandStyles } from "../components/BrandStyles";
+import ScheduledPaymentsScreen from "./ForecastScreen_Payments";
 
 interface propsInterface {
     navigation: any
@@ -17,8 +19,16 @@ interface propsInterface {
 
 const ForecastScreen = ({ navigation }: propsInterface) => {
 
+    const layout = useWindowDimensions();
+
+    const [tabIndex, setTabIndex] = useState<number>(0);
     const [redrawPage, setRedrawPage] = useState<number>(0);
     const [ledger, setLedger] = useState<Forecast[]>([]);
+
+    const [tabRoutes] = useState([
+        { key: 'payments', title: 'Payments' },
+        { key: 'plans', title: 'Plans' },
+    ]);
 
     useEffect(() => {
         db.transaction((txn: any) => {
@@ -50,11 +60,30 @@ const ForecastScreen = ({ navigation }: propsInterface) => {
         return convertRecordset([...ledgerData]);
     }
 
+    const PaymentsRoute = () => (
+        <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={ForecastStyles.container}>
+            <ScheduledPaymentsScreen navigation={navigation} />
+        </ScrollView>
+    );
 
-    return (<LayoutDefault title="Txn Forecast" navigation={navigation}>
+    const PlansRoute = () => (
         <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={ForecastStyles.container}>
             <TabulatedData bodyData={ledgerData().bodyData} headerData={ledgerData().headerData} />
         </ScrollView>
+    );
+
+    const renderScene = SceneMap({
+        payments: PaymentsRoute,
+        plans: PlansRoute,
+    });
+
+    return (<LayoutDefault title="Txn Forecast" navigation={navigation}>
+        <TabView
+            navigationState={{ index: tabIndex, routes: tabRoutes }}
+            renderScene={renderScene}
+            onIndexChange={setTabIndex}
+            initialLayout={{ width: layout.width }}
+        />
     </LayoutDefault>);
 
 }

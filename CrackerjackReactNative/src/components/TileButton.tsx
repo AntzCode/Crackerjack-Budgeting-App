@@ -29,6 +29,8 @@ const TileButton = (props: propsInterface) => {
             backgroundColor: brandStyles.bright.backgroundColor,
             color: brandStyles.bright.color,
             fontSize: 30,
+            lineHeight: 30,
+            paddingVertical: 5,
             textAlign: "center",
             borderBottomLeftRadius: 10,
             borderBottomRightRadius: 10,

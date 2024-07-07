@@ -17,7 +17,6 @@ export const autoUpgrade = async () => {
 
     await db.transaction(async (txn: any) => await txn.executeSql('SELECT * FROM migration ORDER BY filename ASC', [],
         async (sqlTxn: any, res: any) => {
-            console.log('has db transaction result', res.rows);
             for (let i = 0; i < res.rows.length; i++) {
                 latestMigration = res.rows.item(i).filename;
             }

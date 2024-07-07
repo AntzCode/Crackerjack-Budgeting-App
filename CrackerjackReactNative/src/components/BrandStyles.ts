@@ -2,19 +2,19 @@ import { StyleSheet } from "react-native";
 
 export const brandStyles = StyleSheet.create({
     deep: {
-        backgroundColor: '#009813',
+        backgroundColor: '#000f98',
         color: 'white',
     },
     bright: {
-        backgroundColor: '#56fc6b',
+        backgroundColor: '#3e9eff',
         color: 'black',
     },
     light: {
-        backgroundColor: '#56fc6b'
+        backgroundColor: '#cdfffc'
     },
     subtle: {
         backgroundColor: '#bae0c3',
-        color: '#555555'
+        color: '#555555',
     },
     primaryButton: {
         backgroundColor: '#149a00',

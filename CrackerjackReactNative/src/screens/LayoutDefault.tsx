@@ -86,12 +86,12 @@ const layoutStyles = StyleSheet.create({
     },
     pageContainer: {
         display: "flex",
-        backgroundColor: 'lightgray',
+        backgroundColor: '#93dce9',
         height: "100%",
     },
     headerContainer: {
         width: "100%",
-        height: 120,
+        height: "15%",
         display: "flex",
         flexDirection: "row",
         alignContent: "flex-end",
@@ -105,7 +105,7 @@ const layoutStyles = StyleSheet.create({
     headerLogoName: {
         fontSize: 50,
         textAlignVertical: "top",
-        color: "#e81800"
+        color: "#421d1d"
     },
     contentContainer: {
         marginHorizontal: 20,

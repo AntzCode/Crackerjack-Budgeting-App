@@ -16,7 +16,7 @@ class PaymentFrequencies extends Map {
     }
 }
 
-class PaymentFrequenciesMultiplier extends Map {}
+class PaymentFrequenciesMultiplier extends Map { }
 
 export const paymentFrequencies = new PaymentFrequencies();
 
@@ -46,3 +46,27 @@ export const getFrequencyMultiplier = (frequency: string) => {
     return paymentFrequenciesMultiplier.get(frequency);
 }
 
+interface sortByFrequencyInterface {
+    frequency: string;
+}
+
+export const sortByFrequency = (modelA: sortByFrequencyInterface, modelB: sortByFrequencyInterface): number => {
+    if (modelA.frequency === modelB.frequency) {
+        return 0;
+    }
+    let sortablePriority = new Map();
+    sortablePriority.set('d', 0);
+    sortablePriority.set('w', 1);
+    sortablePriority.set('f', 2);
+    sortablePriority.set('m', 3);
+    sortablePriority.set('m2', 4);
+    sortablePriority.set('m3', 5);
+    sortablePriority.set('y', 6);
+    if (sortablePriority.get(modelA.frequency) < sortablePriority.get(modelB.frequency)) {
+        return 1;
+    }
+    if (sortablePriority.get(modelA.frequency) > sortablePriority.get(modelB.frequency)) {
+        return -1;
+    }
+    return 0;
+}

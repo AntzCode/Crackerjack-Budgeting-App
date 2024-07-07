@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { get, set, has } from 'lodash';
 import dateFormat from 'dateformat';
 import { db } from "../store/database";
-import { ScrollView, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import LayoutDefault from "./LayoutDefault";
 import TabulatedData, { convertRecordset } from "../components/TabulatedData";
 import { Transaction } from "../store/models/Transaction";
@@ -49,9 +49,12 @@ const LedgerScreen = ({ navigation }: propsInterface) => {
 
 
     return (<LayoutDefault title="Txn History" navigation={navigation}>
-        <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={LedgerStyles.container}>
+        <View style={LedgerStyles.container}>
+            <ScrollView contentInsetAdjustmentBehavior="scrollableAxes">
             <TabulatedData bodyData={ledgerData().bodyData} headerData={ledgerData().headerData} />
         </ScrollView>
+        </View>
+        
     </LayoutDefault>);
 
 }
