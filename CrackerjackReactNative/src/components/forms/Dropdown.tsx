@@ -3,6 +3,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import SelectDropdown from 'react-native-select-dropdown';
 
 import FormField from './FormField';
+import { brandStyles } from '../BrandStyles';
+import { Icon } from 'react-native-paper';
 
 export interface DropdownOptionInterface {
     title: string;
@@ -14,6 +16,7 @@ interface propsInterface {
     value: DropdownOptionInterface;
     options: DropdownOptionInterface[];
     onChangeSelect: CallableFunction;
+    style?: any
 }
 
 const Dropdown = (props: propsInterface) => {
@@ -22,7 +25,7 @@ const Dropdown = (props: propsInterface) => {
     const [options, setOptions] = useState<DropdownOptionInterface[]>(props.options);
 
     return (
-        <FormField label={props.label}>
+        <FormField label={props.label} style={props.style}>
             <SelectDropdown
                 defaultValue={value}
                 onSelect={(_value) => (setValue(_value), props.onChangeSelect(_value))}
@@ -33,6 +36,7 @@ const Dropdown = (props: propsInterface) => {
                             <Text style={styles.dropdownButtonTxtStyle}>
                                 {(selectedItem && selectedItem.title) || 'Select one...'}
                             </Text>
+                            <Icon source="chevron-down" size={30} />
                         </View>
                     );
                 }}
@@ -49,11 +53,15 @@ const Dropdown = (props: propsInterface) => {
         </FormField>
     )
 }
+
 const styles = StyleSheet.create({
     dropdownButtonStyle: {
         width: 200,
         height: 50,
         backgroundColor: '#E9ECEF',
+        borderColor: brandStyles.strongBorder.borderColor,
+        borderWidth: brandStyles.strongBorder.borderWidth,
+        borderStyle: brandStyles.strongBorder.borderStyle,
         borderRadius: 12,
         flexDirection: 'row',
         justifyContent: 'center',

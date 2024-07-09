@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { get, set } from 'lodash';
-import dateFormat from 'dateformat';
+import { format as dateFormat } from 'date-fns';
 
-import LayoutDefault from "./LayoutDefault";
 import TabulatedData, { convertRecordset } from "../components/TabulatedData";
 import { CurrencyFormat } from "../components/CurrencyFormat";
 
 import { Forecast } from "../store/models/Forecast";
+import ScheduledPaymentsScreen from "./ScheduledPaymentsScreen";
+
 import { db } from "../store/database";
-import { TabView, SceneMap } from 'react-native-tab-view';
-import { brandStyles } from "../components/BrandStyles";
-import ScheduledPaymentsScreen from "./ForecastScreen_Payments";
 
 interface propsInterface {
     navigation: any
@@ -19,10 +18,7 @@ interface propsInterface {
 
 const ForecastScreen = ({ navigation }: propsInterface) => {
 
-    const layout = useWindowDimensions();
-
-    const [tabIndex, setTabIndex] = useState<number>(0);
-    const [redrawPage, setRedrawPage] = useState<number>(0);
+    const Stack = createNativeStackNavigator();
     const [ledger, setLedger] = useState<Forecast[]>([]);
 
     const [tabRoutes] = useState([
@@ -31,60 +27,55 @@ const ForecastScreen = ({ navigation }: propsInterface) => {
     ]);
 
     useEffect(() => {
-        db.transaction((txn: any) => {
-            txn.executeSql("SELECT * FROM `forecast` ORDER BY `date` ASC", [],
-                (status: any, data: any) => {
-                    let items: Forecast[] = [];
-                    for (let i = 0; i < data.rows.length; i++) {
-                        let row = data.rows.item(i);
-                        let forecast = new Forecast();
-                        Object.keys(row).forEach((keyname: string) => {
-                            set(forecast, keyname, get(row, keyname));
-                        });
-                        items.push(forecast);
-                    }
-                    setLedger(items);
-                }, (error: any) => { console.log('error: ', error) })
+        setTimeout(async () => {
+
+            (await db).transaction((txn: any) => {
+                txn.executeSql("SELECT * FROM `forecast` ORDER BY `date` ASC", [],
+                    (status: any, data: any) => {
+                        let items: Forecast[] = [];
+                        for (let i = 0; i < data.rows.length; i++) {
+                            let row = data.rows.item(i);
+                            let forecast = new Forecast();
+                            Object.keys(row).forEach((keyname: string) => {
+                                set(forecast, keyname, get(row, keyname));
+                            });
+                            items[i] = forecast;
+                        }
+                        setLedger(items);
+                    }, (error: any) => { console.log('error: ', error) })
+            });
         });
-    }, [, redrawPage]);
+    }, []);
 
     const ledgerData = () => {
         let ledgerData = ledger.map((forecast: Forecast) => {
             return {
-                Date: dateFormat(forecast.date, 'yyyy-mm-dd HH:MMtt'),
+                Date: dateFormat(forecast.date, 'yyyy-mm-dd'),
                 Description: forecast.description,
                 Amount: <CurrencyFormat>{forecast.amount}</CurrencyFormat>,
                 Balance: <CurrencyFormat>{forecast.balance}</CurrencyFormat>
             }
         });
-        return convertRecordset([...ledgerData]);
+        return convertRecordset(ledgerData);
     }
 
-    const PaymentsRoute = () => (
+    const PaymentsView = () => (
         <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={ForecastStyles.container}>
             <ScheduledPaymentsScreen navigation={navigation} />
         </ScrollView>
     );
 
-    const PlansRoute = () => (
+    const PlansView = () => (
         <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={ForecastStyles.container}>
             <TabulatedData bodyData={ledgerData().bodyData} headerData={ledgerData().headerData} />
         </ScrollView>
     );
 
-    const renderScene = SceneMap({
-        payments: PaymentsRoute,
-        plans: PlansRoute,
-    });
-
-    return (<LayoutDefault title="Txn Forecast" navigation={navigation}>
-        <TabView
-            navigationState={{ index: tabIndex, routes: tabRoutes }}
-            renderScene={renderScene}
-            onIndexChange={setTabIndex}
-            initialLayout={{ width: layout.width }}
-        />
-    </LayoutDefault>);
+    return <View style={{ display: 'flex', flex: 1, backgroundColor: 'green', height: '100%' }}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Plans" component={PlansView} />
+        </Stack.Navigator>
+    </View>;
 
 }
 

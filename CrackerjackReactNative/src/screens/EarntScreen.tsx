@@ -1,28 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { DatePickerInput } from 'react-native-paper-dates';
 
 import LayoutDefault from './LayoutDefault';
-import { brandStyles } from '../components/BrandStyles';
+
 import Dropdown, { DropdownOptionInterface } from '../components/forms/Dropdown';
+import TextInput from '../components/forms/TextInput';
 import Decimal from '../components/forms/Decimal';
 import Numeric from '../components/forms/Numeric';
 import Submit from '../components/forms/Submit';
 import Switch from '../components/forms/Switch';
-import TextInput from '../components/forms/TextInput';
 
 import { Income, tablename as incomeTablename, idColumnName as incomeIdColumnName } from '../store/models/Income';
 import { getCurrentBalance } from '../store/models/Transaction';
 import { generateForecasts, generateForecastsRunningBalance } from '../store/models/Forecast';
+
 import { createRecord } from '../store/database';
 import { paymentFrequencies } from '../constants/time';
+import { brandStyles } from '../components/BrandStyles';
 
 interface propsInterface {
     navigation: any
 }
 
 const EarntScreen = ({ navigation }: propsInterface) => {
-
-    const isDarkMode = useColorScheme() === 'dark';
 
     const [isRecurring, setIsRecurring] = useState<boolean>(false);
     const [amount, setAmount] = useState<number>(0);
@@ -31,7 +32,6 @@ const EarntScreen = ({ navigation }: propsInterface) => {
     const [isIndefinite, setIsIndefinite] = useState<boolean>(true);
     const [paymentsCount, setPaymentsCount] = useState<number>(1);
     const [total, setTotal] = useState<number>(0.00);
-    // @TODO: user locale configuration
     const [firstPaymentDate, setFirstPaymentDate] = useState<Date>(new Date());
 
     useEffect(() => {
@@ -44,6 +44,16 @@ const EarntScreen = ({ navigation }: propsInterface) => {
     const processSubmit = async () => {
 
         let income = new Income();
+
+        if (description.length < 1) {
+            Alert.alert('Description is empty');
+            return;
+        }
+
+        if (amount <= 0) {
+            Alert.alert('Amount is empty');
+            return;
+        }
 
         income.paymentAmount = parseFloat(`${amount}`);
         income.incomeTotal = parseFloat(`${total}`);
@@ -65,51 +75,66 @@ const EarntScreen = ({ navigation }: propsInterface) => {
 
         navigation.goBack();
 
-        // let transaction = new Transaction();
-        // transaction.date = income.createdDate;
-        // transaction.description = income.description;
-        // transaction.amount = income.paymentAmount;
-        // transaction.balance = parseFloat(`${balance}`) + parseFloat(`${income.paymentAmount}`);
-        // transaction.expenseId = result.results.insertId;
-
-        // createRecord(transactionTablename, transactionIdColumnName, transaction);
-
-
     }
 
     return (
         <LayoutDefault title="Earning" navigation={navigation}>
-            <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={spentStyles.container}>
+            <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={earntStyles.container}>
 
                 <TextInput label="From what?" value={description} onChangeText={setDescription}></TextInput>
 
                 <Decimal label="Amount" value={amount} onChangeText={setAmount} />
 
-                <Switch
-                    style={spentStyles.recurringSwitch}
-                    label="Recurring Income?"
-                    onValueChange={setIsRecurring}
-                    onTrueContent={<View>
-                        <TextInput label="First Payment Date" value={firstPaymentDate.toISOString()} onChangeText={(_value: string) => setFirstPaymentDate(new Date(_value))} />
+                <View style={{ ...(isRecurring ? { ...earntStyles.recurringContainer } : {}) }}>
 
-                        <Dropdown label="" value={frequency}
-                            options={paymentFrequencies.getDropdownOptions()}
-                            onChangeSelect={(_value: DropdownOptionInterface) => setFrequency(_value)} />
+                    <Switch
+                        style={earntStyles.recurringSwitch}
+                        label="Recurring Income?"
+                        onValueChange={setIsRecurring}
+                        onTrueContent={<View>
 
-                        <Switch
-                            label="Until further notice?"
-                            value={isIndefinite}
-                            onValueChange={(value: boolean) => setIsIndefinite(value)}
+                            <Dropdown label="" value={frequency}
+                                style={earntStyles.recurringInput}
+                                options={paymentFrequencies.getDropdownOptions()}
+                                onChangeSelect={(_value: DropdownOptionInterface) => setFrequency(_value)} />
 
-                        />
+                            <DatePickerInput
+                                style={earntStyles.recurringInput}
+                                mode="outlined"
+                                locale="en"
+                                label="First Payment Date"
+                                value={firstPaymentDate}
+                                onChange={(d) => setFirstPaymentDate(d ?? firstPaymentDate)}
+                                inputMode="start"
+                            />
 
-                        {!isIndefinite && <>
-                            <Numeric label="Number of Payments" value={paymentsCount} onChangeText={setPaymentsCount} />
-                            <Decimal label="Total" value={total} onChangeText={() => { }} readOnly />
+                        </View>}
+                    ></Switch>
+
+                    {isRecurring && <Switch
+                        style={{
+                            padding: 0,
+                            margin: 0,
+                            marginHorizontal: 0,
+                            paddingHorizontal: 0,
+
+                        }}
+                        label="Until further notice?"
+                        value={isIndefinite}
+                        onValueChange={(value: boolean) => setIsIndefinite(value)}
+                        onFalseContent={<>
+                            <Numeric label="Number of Payments"
+                                value={paymentsCount}
+                                onChangeText={setPaymentsCount}
+                                style={earntStyles.recurringInput} />
+                            <Decimal readOnly label="Total"
+                                value={total}
+                                onChangeText={() => { }} />
                         </>}
 
-                    </View>}
-                ></Switch>
+                    />}
+
+                </View>
 
                 <Submit submitText='Save' onSubmit={processSubmit} onCancel={() => navigation.goBack()} />
 
@@ -119,17 +144,23 @@ const EarntScreen = ({ navigation }: propsInterface) => {
     )
 }
 
-const spentStyles = StyleSheet.create({
+const earntStyles = StyleSheet.create({
     container: {
         height: "100%",
         display: "flex",
         flexDirection: "column",
     },
     recurringSwitch: {
-        marginVertical: 5,
+        marginVertical: 15,
         borderRadius: 8,
-        backgroundColor: brandStyles.subtle.backgroundColor,
-        color: brandStyles.subtle.color,
+    },
+    recurringContainer: {
+        ...brandStyles.defaultBorder,
+        marginVertical: 10,
+        paddingHorizontal: 15
+    },
+    recurringInput: {
+        marginVertical: 5
     }
 });
 

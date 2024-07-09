@@ -2,7 +2,7 @@ import { db } from "../store/database";
 
 export const migrate_20240609_04 = async () => {
     console.log('executing migrate_20240609_04');
-    await db.transaction(async (txn: any) => {
+    (await db).transaction(async (txn: any) => {
         await txn.executeSql(incomeTableSql, [], () => { }, (error: any) => console.log(error));
     });
 }

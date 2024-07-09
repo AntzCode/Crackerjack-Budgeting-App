@@ -2,9 +2,8 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { brandStyles } from '../BrandStyles';
-import Button from './Button';
+import { Button } from 'react-native-paper';
 import FormField from './FormField';
-
 
 interface propsInterface {
     onSubmit: CallableFunction;
@@ -18,11 +17,17 @@ const Submit = (props: propsInterface) => {
     return (
         <FormField style={submitStyles.container}>
             <View style={submitStyles.buttonColumn}>
-                <Button style={{ ...submitStyles.button, backgroundColor: brandStyles.dangerButton.backgroundColor, color: brandStyles.dangerButton.color }} onPress={() => (props.onCancel && props.onCancel())} text={props.cancelText ?? 'Cancel'} />
+                <Button mode="contained"
+                    buttonColor={brandStyles.secondaryButton.backgroundColor}
+                    textColor={brandStyles.secondaryButton.color}
+                    onPress={() => (props.onCancel && props.onCancel())}>{props.cancelText ?? 'Cancel'}</Button>
             </View>
             <View style={submitStyles.buttonColumn}></View>
             <View style={submitStyles.buttonColumn}>
-                <Button style={{ ...submitStyles.button, backgroundColor: brandStyles.primaryButton.backgroundColor, color: brandStyles.primaryButton.color }} onPress={() => (props.onSubmit && props.onSubmit())} text={props.submitText ?? 'Submit'} />
+                <Button mode="contained"
+                    buttonColor={brandStyles.primaryButton.backgroundColor}
+                    textColor={brandStyles.primaryButton.color}
+                    onPress={() => (props.onSubmit && props.onSubmit())}>{props.submitText ?? 'Submit'}</Button>
             </View>
         </FormField>
     )
@@ -37,10 +42,6 @@ const submitStyles = StyleSheet.create({
     buttonColumn: {
         flex: 1,
     },
-    button: {
-        backgroundColor: brandStyles.bright.backgroundColor,
-        textAlign: 'center'
-    }
 });
 
 export default Submit;

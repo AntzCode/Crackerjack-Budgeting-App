@@ -8,7 +8,7 @@ export const defaultProps = {
 }
 
 export const currencyFormat = (value: number, locale: string = 'en-NZ', currency: string = 'NZD'): string => {
-    return (parseFloat(''+value)).toLocaleString(locale, {
+    return (parseFloat('' + value)).toLocaleString(locale, {
         style: 'currency',
         currency,
     })

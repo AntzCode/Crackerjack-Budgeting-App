@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { get, set, has } from 'lodash';
-import dateFormat from 'dateformat';
+import { format as dateFormat } from 'date-fns';
 import { db } from "../store/database";
 import { ScrollView, StyleSheet, View } from "react-native";
 import LayoutDefault from "./LayoutDefault";
@@ -14,26 +14,27 @@ interface propsInterface {
 
 const LedgerScreen = ({ navigation }: propsInterface) => {
 
-    const [redrawPage, setRedrawPage] = useState<number>(0);
     const [ledger, setLedger] = useState<Transaction[]>([]);
 
     useEffect(() => {
-        db.transaction((txn: any) => {
-            txn.executeSql("SELECT * FROM `transaction` ORDER BY `date` DESC", [],
-                (status: any, data: any) => {
-                    let items: Transaction[] = [];
-                    for (let i = 0; i < data.rows.length; i++) {
-                        let row = data.rows.item(i);
-                        let transaction = new Transaction();
-                        Object.keys(row).forEach((keyname: string) => {
-                            set(transaction, keyname, get(row, keyname));
-                        });
-                        items.push(transaction);
-                    }
-                    setLedger(items);
-                }, (error: any) => { console.log('error: ', error) })
-        });
-    }, [, redrawPage]);
+        setTimeout(async () => {
+            (await db).transaction((txn: any) => {
+                txn.executeSql("SELECT * FROM `transaction` ORDER BY `date` DESC", [],
+                    (status: any, data: any) => {
+                        let items: Transaction[] = [];
+                        for (let i = 0; i < data.rows.length; i++) {
+                            let row = data.rows.item(i);
+                            let transaction = new Transaction();
+                            Object.keys(row).forEach((keyname: string) => {
+                                set(transaction, keyname, get(row, keyname));
+                            });
+                            items.push(transaction);
+                        }
+                        setLedger(items);
+                    }, (error: any) => { console.log('error: ', error) })
+            });
+        })
+    }, []);
 
     const ledgerData = () => {
         let ledgerData = ledger.map((transaction: Transaction) => {
@@ -47,14 +48,13 @@ const LedgerScreen = ({ navigation }: propsInterface) => {
         return convertRecordset([...ledgerData]);
     }
 
-
     return (<LayoutDefault title="Txn History" navigation={navigation}>
         <View style={LedgerStyles.container}>
             <ScrollView contentInsetAdjustmentBehavior="scrollableAxes">
-            <TabulatedData bodyData={ledgerData().bodyData} headerData={ledgerData().headerData} />
-        </ScrollView>
+                <TabulatedData bodyData={ledgerData().bodyData} headerData={ledgerData().headerData} />
+            </ScrollView>
         </View>
-        
+
     </LayoutDefault>);
 
 }

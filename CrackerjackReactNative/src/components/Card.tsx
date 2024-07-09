@@ -1,5 +1,5 @@
 import React, { ReactElement } from 'react';
-import { StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface cardProps {
     children?: string | ReactElement;
@@ -9,12 +9,9 @@ interface cardProps {
 
 const Card = (props: cardProps) => {
 
-    const isDarkMode = useColorScheme() === 'dark';
-
     return (
         <View style={{
-            ...cardStyles.container,
-            color: isDarkMode ? "white" : "black"
+            ...cardStyles.container
         }}>
             {typeof props.title !== 'undefined' && <View style={cardStyles.titleContainer}>
                 {typeof props.title === 'string'

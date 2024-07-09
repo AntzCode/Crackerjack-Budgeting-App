@@ -35,7 +35,7 @@ export const generateForecastsRunningBalance = async (openingBalance: number) =>
     return new Promise(async (resolve, reject) => {
         
         // set the balance of the first row based on the provided openingBalance and the row amount
-        await db.transaction((txn: any) => txn.executeSql("SELECT `forecastId`, `amount`, `expenseId`, `incomeId` FROM `forecast` ORDER BY `date` ASC LIMIT 1", [], async (status: any, data: any) => {
+        (await db).transaction((txn: any) => txn.executeSql("SELECT `forecastId`, `amount`, `expenseId`, `incomeId` FROM `forecast` ORDER BY `date` ASC LIMIT 1", [], async (status: any, data: any) => {
             let row = data.rows.item(0);
             let rowOpeningBalance = openingBalance;
             if (!isNull(get(row, 'expenseId'))) {
@@ -47,7 +47,7 @@ export const generateForecastsRunningBalance = async (openingBalance: number) =>
         }, () => { }));
 
         // set the balance of all subsequent rows
-        await db.transaction((txn: any) => txn.executeSql("SELECT `forecastId`, `date`, `amount`, `balance`, `expenseId`, `incomeId` FROM `forecast` ORDER BY `date` ASC, `forecastId` ASC", [],
+        (await db).transaction((txn: any) => txn.executeSql("SELECT `forecastId`, `date`, `amount`, `balance`, `expenseId`, `incomeId` FROM `forecast` ORDER BY `date` ASC, `forecastId` ASC", [],
             async (status: any, data: any) => {
                 for (let i = 0; i < data.rows.length; i++) {
                     let row = data.rows.item(i);
@@ -55,10 +55,10 @@ export const generateForecastsRunningBalance = async (openingBalance: number) =>
                     let params: any = [];
                     if (!isNull(get(row, 'expenseId'))) {
                         params = [get(row, 'amount'), get(row, 'date'), get(row, 'forecastId'), get(row, 'forecastId')];
-                        await db.transaction((txn2: any) => txn2.executeSql(query.replace('{operator}', '-'), params));
+                        (await db).transaction((txn2: any) => txn2.executeSql(query.replace('{operator}', '-'), params));
                     } else if (!isNull(get(row, 'incomeId'))) {
                         params = [get(row, 'amount'), get(row, 'date'), get(row, 'forecastId'), get(row, 'forecastId')];
-                        await db.transaction((txn2: any) => txn2.executeSql(query.replace('{operator}', '+'), params));
+                        (await db).transaction((txn2: any) => txn2.executeSql(query.replace('{operator}', '+'), params));
                     }
                 }
                 resolve(1);
@@ -73,7 +73,7 @@ export const generateForecasts = async (payment: Expense | Income): Promise<Fore
     let paymentTypeColumnName = (has(payment, 'expenseId')) ? 'expenseId' : (has(payment, 'incomeId')) ? 'incomeId' : '';
 
     return new Promise(async (resolve, reject) => {
-        await db.transaction((txn: any) => {
+        (await db).transaction((txn: any) => {
             // delete existing forecasts of the same payment
             let query = "DELETE FROM `forecasts` WHERE `" + (paymentTypeColumnName) + "` = ?";
             txn.executeSql(query, [get(payment, paymentTypeColumnName)]);

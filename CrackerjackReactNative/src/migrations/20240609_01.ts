@@ -9,7 +9,7 @@ export const migrate_20240609_01 = async () => {
         `date` DATE NOT NULL DEFAULT CURRENT_TIMESTAMP\
     )";
 
-    await db.transaction(async (txn: any) => {
+    (await db).transaction(async (txn: any) => {
         await txn.executeSql(migrationsTableSql, [], () => { }, (error: any) => console.log(error));
     });
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, useColorScheme, TouchableOpacity, Alert } from 'react-native';
-import { brandStyles } from './BrandStyles';
-import { isFunction, get, has, isEmpty, isUndefined, isNull } from 'lodash';
+import { StyleSheet, View, Text } from 'react-native';
+import { isFunction, get, has, isUndefined, isNull } from 'lodash';
+import { DataTable } from 'react-native-paper';
 
 interface TabulatedDataOptions {
     // enables only one row footer to be visible at any time
@@ -66,15 +66,13 @@ export const convertRecordset = ((dataset: RecordsetType[]) => {
 
 const TabulatedData = (props: TabulatedDataProps) => {
 
-    const isDarkMode = useColorScheme() === 'dark';
-
-    let options: TabulatedDataOptions = {...defaultTabulatedDataOptions, ...props.options};
+    let options: TabulatedDataOptions = { ...defaultTabulatedDataOptions, ...props.options };
 
     let actions: Map<string, CallableFunction>[] = props.actions ?? [];
 
     let rowFooters: any[] = props.rowFooters ?? [];
     let [rowFooterState, setRowFooterState] = useState<boolean[]>([]);
-    
+
     const canShowRowFooter = (rowIndex: number) => {
         return typeof rowFooterState[rowIndex] === 'boolean' ? rowFooterState[rowIndex] : false;
     }
@@ -99,10 +97,10 @@ const TabulatedData = (props: TabulatedDataProps) => {
                 let newRowFooterState = [..._rowFooterState];
                 newRowFooterState[rowIndex] = !newRowFooterState[rowIndex];
 
-            if(options.accordionRowFooters){
-                // close all others
-                newRowFooterState = newRowFooterState.map((v:boolean, i:number) => (i===rowIndex && v) || false);
-            }
+                if (options.accordionRowFooters) {
+                    // close all others
+                    newRowFooterState = newRowFooterState.map((v: boolean, i: number) => (i === rowIndex && v) || false);
+                }
                 return newRowFooterState;
             });
         }
@@ -133,9 +131,9 @@ const TabulatedData = (props: TabulatedDataProps) => {
     return (<>
         {props.bodyData.length < 1
             ? <View style={TabulatedDataStyles.emptyMessageContainer}><Text style={TabulatedDataStyles.emptyMessageText}>{props.emptyMessage ?? 'No records'}</Text></View>
-            : <View style={TabulatedDataStyles.tableContainer}>
-                {props.headerData && <View style={TabulatedDataStyles.tableHeaderRow}>
-                    {props.headerData.map((cellContent: string | number, iKey: number) => <View style={{
+            : <DataTable style={TabulatedDataStyles.tableContainer}>
+                {props.headerData && <DataTable.Header style={TabulatedDataStyles.tableHeaderRow}>
+                    {props.headerData.map((cellContent: string | number, iKey: number) => <DataTable.Title style={{
                         ...TabulatedDataStyles.tableHeaderCell,
                         ...(iKey === 0 ? TabulatedDataStyles.tableHeaderCellFirst : {}),
                         ...(iKey === props.headerData.length - 1 ? TabulatedDataStyles.tableHeaderCellLast : {})
@@ -146,45 +144,29 @@ const TabulatedData = (props: TabulatedDataProps) => {
                             ...(iKey === 0 ? TabulatedDataStyles.tableHeaderCellFirstText : {}),
                             ...(iKey === props.headerData.length - 1 ? TabulatedDataStyles.tableHeaderCellLastText : {})
                         }}>{cellContent}</Text>
-                    </View>)}
-                </View>}
-                <View style={TabulatedDataStyles.tableBody}>
-                    {props.bodyData.map((bodyData: any, iKey: number) => <View key={iKey} style={TabulatedDataStyles.tableDataRow}>
+                    </DataTable.Title>)}
+                </DataTable.Header>}
 
-                        {!isEmpty(getRowActions(iKey))
-                            ? <TouchableOpacity
-                                style={TabulatedDataStyles.tableDataRowWrapper}
-                                onPress={() => handleRowOnPress(iKey)}
-                                onLongPress={() => handleRowOnLongPress(iKey)}>
-                                {bodyData.map((cellContent: string | number, i2Key: number) => <View style={{
-                                    ...TabulatedDataStyles.tableDataCell,
-                                    ...(i2Key === 0 ? TabulatedDataStyles.tableDataCellFirst : {}),
-                                    ...(i2Key === bodyData.length - 1 ? TabulatedDataStyles.tableDataCellLast : {})
-                                }} key={i2Key}>
-                                    <Text style={{
-                                        ...TabulatedDataStyles.text, ...TabulatedDataStyles.tableDataCellText,
-                                        ...(i2Key === 0 ? TabulatedDataStyles.tableDataCellFirstText : {}),
-                                        ...(i2Key === bodyData.length - 1 ? TabulatedDataStyles.tableDataCellLastText : {})
-                                    }}>{cellContent}</Text>
-                                </View>)}
-                            </TouchableOpacity>
-                            : <View style={TabulatedDataStyles.tableDataRowWrapper}>
-                                {bodyData.map((cellContent: string | number, i2Key: number) => <View style={{
-                                    ...TabulatedDataStyles.tableDataCell,
-                                    ...(i2Key === 0 ? TabulatedDataStyles.tableDataCellFirst : {}),
-                                    ...(i2Key === bodyData.length - 1 ? TabulatedDataStyles.tableDataCellLast : {})
-                                }} key={i2Key}>
-                                    <Text style={{
-                                        ...TabulatedDataStyles.text, ...TabulatedDataStyles.tableDataCellText,
-                                        ...(i2Key === 0 ? TabulatedDataStyles.tableDataCellFirstText : {}),
-                                        ...(i2Key === bodyData.length - 1 ? TabulatedDataStyles.tableDataCellLastText : {})
-                                    }}>{cellContent}</Text>
-                                </View>)}
-                            </View>}
-                            {canShowRowFooter(iKey) && <View style={TabulatedDataStyles.tableDataRowFooter}><Text style={TabulatedDataStyles.tableDataRowFooterText}>{rowFooters[iKey]}</Text></View>}
-                    </View>)}
-                </View>
-            </View >
+                {props.bodyData.map((bodyData: any, iKey: number) => <DataTable.Row key={iKey}
+                    style={TabulatedDataStyles.tableDataRow}
+                    onPress={() => handleRowOnPress(iKey)}
+                    onLongPress={() => handleRowOnLongPress(iKey)}>
+
+                    {bodyData.map((cellContent: string | number, i2Key: number) => <DataTable.Cell style={{
+                        ...TabulatedDataStyles.tableDataCell,
+                        ...(i2Key === bodyData.length - 1 ? TabulatedDataStyles.tableDataCellLast : {}),
+                        ...(i2Key === 0 ? TabulatedDataStyles.tableDataCellFirst : {}),
+                    }} key={i2Key}>
+                        <Text style={{
+                            ...TabulatedDataStyles.text, ...TabulatedDataStyles.tableDataCellText,
+                            ...(i2Key === bodyData.length - 1 ? TabulatedDataStyles.tableDataCellLastText : {}),
+                            ...(i2Key === 0 ? TabulatedDataStyles.tableDataCellFirstText : {}),
+                        }}>{cellContent}</Text>
+                    </DataTable.Cell>)}
+                    {canShowRowFooter(iKey) && <View style={TabulatedDataStyles.tableDataRowFooter}>{rowFooters[iKey]}</View>}
+                </DataTable.Row>)}
+
+            </DataTable>
         }
     </>)
 }
@@ -199,7 +181,8 @@ const TabulatedDataStyles = StyleSheet.create({
         textAlign: 'center'
     },
     tableContainer: {
-        backgroundColor: brandStyles.light.backgroundColor,
+        display: 'flex',
+        flex: 1,
     },
     tableHeaderRow: {
         display: 'flex',
@@ -214,12 +197,14 @@ const TabulatedDataStyles = StyleSheet.create({
     tableHeaderCellFirst: {
     },
     tableHeaderCellLast: {
+        justifyContent: 'flex-end'
     },
     tableHeaderCellFirstText: {
         textAlign: 'left',
     },
     tableHeaderCellLastText: {
         textAlign: 'right',
+        flex: 1,
     },
     tableHeaderCellText: {
         fontWeight: 'bold'
@@ -227,8 +212,6 @@ const TabulatedDataStyles = StyleSheet.create({
     tableBody: {
     },
     tableDataRow: {
-    },
-    tableDataRowWrapper: {
         display: 'flex',
         flexDirection: 'row',
         alignContent: 'space-between',
@@ -238,7 +221,7 @@ const TabulatedDataStyles = StyleSheet.create({
 
     },
     tableDataRowFooterText: {
-        
+
     },
     tableDataRowEven: {
 
@@ -250,6 +233,7 @@ const TabulatedDataStyles = StyleSheet.create({
         flex: 1,
     },
     tableDataCellFirst: {
+        flex: 2,
     },
     tableDataCellLast: {
     },
@@ -258,6 +242,7 @@ const TabulatedDataStyles = StyleSheet.create({
     },
     tableDataCellLastText: {
         textAlign: 'right',
+        flex: 1,
     },
     tableDataCellText: {
         padding: 5

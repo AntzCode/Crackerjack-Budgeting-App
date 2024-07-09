@@ -1,5 +1,5 @@
 
-import { CachesDirectoryPath, DocumentDirectoryPath, MainBundlePath, copyFile, copyFileAssets, readdir } from "react-native-fs";
+import { MainBundlePath, copyFile, copyFileAssets } from "react-native-fs";
 import { db } from "../store/database";
 import { Platform } from "react-native";
 import { migrations } from './migrations';
@@ -15,7 +15,7 @@ export const autoUpgrade = async () => {
 
     let latestMigration: string | undefined = undefined;
 
-    await db.transaction(async (txn: any) => await txn.executeSql('SELECT * FROM migration ORDER BY filename ASC', [],
+    (await db).transaction(async (txn: any) => await txn.executeSql('SELECT * FROM migration ORDER BY filename ASC', [],
         async (sqlTxn: any, res: any) => {
             for (let i = 0; i < res.rows.length; i++) {
                 latestMigration = res.rows.item(i).filename;
@@ -24,7 +24,7 @@ export const autoUpgrade = async () => {
                 let [_date, _iteration] = latestMigration.split('_');
                 let minMigration = _date + '_' + (Number.parseInt(_iteration) + 1);
                 await applyUpgrades(minMigration);
-            }else{
+            } else {
                 console.log('not installed! ... I will install it now...');
                 await applyUpgrades();
             }
@@ -33,8 +33,7 @@ export const autoUpgrade = async () => {
             console.log('I will apply upgrades');
             await applyUpgrades();
         }
-    )
-    );
+    ))
 }
 
 export const applyUpgrades = async (min?: string, max?: string) => {
@@ -58,13 +57,13 @@ export const applyUpgrades = async (min?: string, max?: string) => {
         let callableMigration = migrations.get(migration);
         if (typeof callableMigration === 'function') {
             await callableMigration();
-            await db.transaction(async (txn: any) => {
+            (await db).transaction(async (txn: any) => {
                 await txn.executeSql("INSERT INTO `migration` (`filename`, `date`) VALUES (:filename, :date)",
                     [migration, new Date().toUTCString()],
-                    () => {},
+                    () => { },
                     (error: any) => console.log('it got an error while trying to insert the migration record ', error)
                 )
-            })
+            });
         }
     }
 }

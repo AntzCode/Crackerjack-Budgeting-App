@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 import LayoutDefault from './LayoutDefault';
-import { brandStyles } from '../components/BrandStyles';
 
-import Decimal from '../components/forms/Decimal';
 import Dropdown, { DropdownOptionInterface } from '../components/forms/Dropdown';
+import TextInput from '../components/forms/TextInput';
+import Decimal from '../components/forms/Decimal';
 import Numeric from '../components/forms/Numeric';
 import Submit from '../components/forms/Submit';
 import Switch from '../components/forms/Switch';
-import TextInput from '../components/forms/TextInput';
 
 import { Expense, tablename as expenseTablename, idColumnName as expenseIdColumnName } from '../store/models/Expense';
 import { getCurrentBalance } from '../store/models/Transaction';
@@ -17,14 +16,14 @@ import { generateForecasts, generateForecastsRunningBalance } from '../store/mod
 
 import { paymentFrequencies } from '../constants/time';
 import { createRecord } from '../store/database';
+import { DatePickerInput } from 'react-native-paper-dates';
+import { brandStyles } from '../components/BrandStyles';
 
 interface propsInterface {
     navigation: any
 }
 
 const SpentScreen = ({ navigation }: propsInterface) => {
-
-    const isDarkMode = useColorScheme() === 'dark';
 
     const [isRecurring, setIsRecurring] = useState<boolean>(false);
     const [amount, setAmount] = useState<number>(0);
@@ -33,7 +32,6 @@ const SpentScreen = ({ navigation }: propsInterface) => {
     const [isIndefinite, setIsIndefinite] = useState<boolean>(true);
     const [paymentsCount, setPaymentsCount] = useState<number>(1);
     const [total, setTotal] = useState<number>(0.00);
-    // @TODO: user locale configuration
     const [firstPaymentDate, setFirstPaymentDate] = useState<Date>(new Date());
 
     useEffect(() => {
@@ -46,6 +44,16 @@ const SpentScreen = ({ navigation }: propsInterface) => {
     const processSubmit = async () => {
 
         let expense = new Expense();
+
+        if (description.length < 1) {
+            Alert.alert('Description is empty');
+            return;
+        }
+
+        if (amount <= 0) {
+            Alert.alert('Amount is empty');
+            return;
+        }
 
         expense.paymentAmount = parseFloat(`${amount}`);
         expense.expenseTotal = parseFloat(`${total}`);
@@ -67,15 +75,6 @@ const SpentScreen = ({ navigation }: propsInterface) => {
 
         navigation.goBack();
 
-        // let transaction = new Transaction();
-        // transaction.date = expense.createdDate;
-        // transaction.description = expense.description;
-        // transaction.amount = expense.paymentAmount;
-        // transaction.balance = balance - expense.paymentAmount;
-        // transaction.expenseId = result.results.insertId;
-
-        // createRecord(transactionTablename, transactionIdColumnName, transaction);
-
     }
 
     return (
@@ -86,31 +85,42 @@ const SpentScreen = ({ navigation }: propsInterface) => {
 
                 <Decimal label="Amount" value={amount} onChangeText={setAmount} />
 
-                <Switch
-                    style={spentStyles.recurringSwitch}
-                    label="Recurring Expenditure?"
-                    onValueChange={setIsRecurring}
-                    onTrueContent={<View>
-                        <TextInput label="First Payment Date" value={firstPaymentDate.toISOString()} onChangeText={(_value: string) => setFirstPaymentDate(new Date(_value))} />
+                <View style={{ ...(isRecurring ? { ...spentStyles.recurringContainer } : {}) }}>
 
-                        <Dropdown label="" value={frequency}
-                            options={paymentFrequencies.getDropdownOptions()}
-                            onChangeSelect={(_value: DropdownOptionInterface) => setFrequency(_value)} />
+                    <Switch
+                        style={spentStyles.recurringSwitch}
+                        label="Recurring Expenditure?"
+                        onValueChange={setIsRecurring}
+                        onTrueContent={<View>
 
-                        <Switch
-                            label="Until further notice?"
-                            value={isIndefinite}
-                            onValueChange={setIsIndefinite}
+                            <Dropdown label="" value={frequency}
+                                options={paymentFrequencies.getDropdownOptions()}
+                                onChangeSelect={(_value: DropdownOptionInterface) => setFrequency(_value)} />
 
-                        />
+                            <DatePickerInput
+                                style={spentStyles.recurringInput}
+                                mode="outlined"
+                                locale="en"
+                                label="First Payment Date"
+                                value={firstPaymentDate}
+                                onChange={(d) => setFirstPaymentDate(d ?? firstPaymentDate)}
+                                inputMode="start"
+                            />
 
-                        {!isIndefinite && <>
+                        </View>}
+                    ></Switch>
+
+                    {isRecurring && <Switch
+                        label="Until further notice?"
+                        value={isIndefinite}
+                        onValueChange={setIsIndefinite}
+                        onFalseContent={<>
                             <Numeric label="Number of Payments" value={paymentsCount} onChangeText={setPaymentsCount} />
                             <Decimal label="Total" value={total} onChangeText={() => { }} readOnly />
                         </>}
+                    />}
 
-                    </View>}
-                ></Switch>
+                </View>
 
                 <Submit submitText='Save' onSubmit={processSubmit} onCancel={() => navigation.goBack()} />
 
@@ -127,12 +137,16 @@ const spentStyles = StyleSheet.create({
         flexDirection: "column",
     },
     recurringSwitch: {
-        // borderWidth: 1,
-        // borderColor: 'gray',
-        marginVertical: 5,
+        marginVertical: 15,
         borderRadius: 8,
-        backgroundColor: brandStyles.subtle.backgroundColor,
-        color: brandStyles.subtle.color,
+    },
+    recurringContainer: {
+        ...brandStyles.defaultBorder,
+        marginVertical: 10,
+        paddingHorizontal: 15
+    },
+    recurringInput: {
+        marginVertical: 5
     }
 });
 

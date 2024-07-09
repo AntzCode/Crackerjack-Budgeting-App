@@ -9,7 +9,7 @@ interface propsInterface {
 
 const Button = (props: propsInterface) => <TouchableOpacity
     onPress={() => (props.onPress && props.onPress())}>
-    <Text style={{...buttonStyles.button, ...(props.style ?? {})}}>{props.text}</Text>
+    <Text style={{ ...buttonStyles.button, ...(props.style ?? {}) }}>{props.text}</Text>
 </TouchableOpacity>
 
 const buttonStyles = StyleSheet.create({

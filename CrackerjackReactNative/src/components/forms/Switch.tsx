@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Switch as ReactSwitch, StyleSheet } from 'react-native';
+import { Switch as ReactSwitch } from 'react-native-paper';
 
 import FormField from './FormField';
 
@@ -26,10 +26,6 @@ const Switch = (props: propsInterface) => {
         </FormField>
     )
 }
-
-const switchStyles = StyleSheet.create({
-
-});
 
 export default Switch;
 

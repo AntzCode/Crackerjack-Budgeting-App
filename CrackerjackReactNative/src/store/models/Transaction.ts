@@ -15,8 +15,8 @@ export class Transaction {
 }
 
 export const getCurrentBalance = async (): Promise<number> => {
-    return new Promise((resolve, reject) => {
-        db.transaction((txn: any) => {
+    return new Promise(async (resolve, reject) => {
+        (await db).transaction((txn: any) => {
             txn.executeSql("SELECT `balance` FROM `transaction` ORDER BY `date` DESC LIMIT 1", [],
                 (status: any, data: any) => {
                     let balance = 0;
@@ -27,6 +27,6 @@ export const getCurrentBalance = async (): Promise<number> => {
                     }
                     resolve(balance);
                 }, (error: any) => { reject(error) })
-        })
+        });
     });
 }

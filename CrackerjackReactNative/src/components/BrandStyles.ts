@@ -1,6 +1,22 @@
 import { StyleSheet } from "react-native";
 
 export const brandStyles = StyleSheet.create({
+    defaultBorder: {
+        borderColor: '#636363',
+        borderWidth: 1,
+        borderStyle: 'solid',
+        borderRadius: 5
+    },
+    strongBorder: {
+        borderColor: '#a1a1a1',
+        borderWidth: 1,
+        borderStyle: 'solid'
+    },
+    lightBorder: {
+        borderColor: '#e7e7e7',
+        borderWidth: 1,
+        borderStyle: 'solid'
+    },
     deep: {
         backgroundColor: '#000f98',
         color: 'white',
@@ -17,11 +33,11 @@ export const brandStyles = StyleSheet.create({
         color: '#555555',
     },
     primaryButton: {
-        backgroundColor: '#149a00',
-        color: 'white',
+        backgroundColor: '#00a6dd',
+        color: '#ffffff',
     },
     secondaryButton: {
-        backgroundColor: '#b6ffc9',
+        backgroundColor: '#cccccc',
         color: '#555555'
     },
     dangerButton: {
