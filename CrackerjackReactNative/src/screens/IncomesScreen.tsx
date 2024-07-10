@@ -1,73 +1,34 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { compose, withObservables } from '@nozbe/watermelondb/react';
 import { Card, Divider, FAB, Icon, Text, TouchableRipple } from 'react-native-paper';
-import { get, set } from 'lodash';
-import { formatDate } from "date-fns";
 
 import TabulatedData, { convertRecordset } from "../components/TabulatedData";
+
 import { CurrencyFormat } from "../components/CurrencyFormat";
 import { brandStyles } from "../components/BrandStyles";
 
-import { generateForecastsRunningBalance } from "../store/models/Forecast";
-import { getCurrentBalance } from "../store/models/Transaction";
-import { Expense } from "../store/models/Expense";
 import { Income } from "../store/models/Income";
 
-import { db } from "../store/database";
-
 interface propsInterface {
-    navigation: any
+    navigation: any,
+    incomesObserved: Income[]
 }
 
-export const IncomesScreen = ({ navigation }: propsInterface) => {
+export const IncomesScreen = ({ navigation, incomesObserved }: propsInterface) => {
 
-    const [incomes, setIncomes] = useState<Income[]>([]);
+    const incomes = incomesObserved;
 
     const filterIncomesByPaymentFrequency = (dataset: Income[], frequency: string) => {
         return [...dataset ?? []].filter((model: Income) => model.paymentFrequency === frequency);
     }
 
-    useEffect(() => {
-        setTimeout(async () => {
-            (await db).transaction((txn: any) => {
-                txn.executeSql("SELECT * FROM `income` WHERE `isRecurring` = 1 AND `deletedDate` IS NULL", [],
-                    (status: any, data: any) => {
-                        let items: Income[] = [];
-                        for (let i = 0; i < data.rows.length; i++) {
-                            let row = data.rows.item(i);
-                            let income = new Income();
-                            Object.keys(row).forEach((keyname: string) => {
-                                set(income, keyname, get(row, keyname));
-                            });
-                            items.push(income);
-                        }
-                        setIncomes(items);
-                    }, (error: any) => { console.log('error: ', error) })
-            });
-        });
-    }, []);
-
     const RowFooterDetails = (props: any) => {
-        const payment: Income | Expense = props.payment;
+        const payment: Income = props.payment;
 
         const deleteIncome = async (income: Income) => {
-            (await db).transaction(async (txn: any) => {
-                await txn.executeSql("UPDATE `income` SET `deletedDate` = ? WHERE `incomeId` = ?",
-                    [formatDate(new Date(), 'yyyy-mm-dd HH:MM:ss'), income.incomeId],
-                    () => { },
-                    () => { }
-                );
-            });
-            (await db).transaction(async (txn: any) => {
-                await txn.executeSql("DELETE FROM `forecast` WHERE `incomeId` = ?",
-                    [income.incomeId],
-                    async () => {
-                        await generateForecastsRunningBalance(await getCurrentBalance());
-                    },
-                    () => { }
-                );
-            });
+            await income.delete();
         }
 
         return <TouchableRipple style={{
@@ -203,6 +164,9 @@ export const incomesStyles = StyleSheet.create({
     }
 });
 
+export default compose(
+    withObservables(['database'], ({ database }) => ({
+        incomesObserved: database.get(Income.table).query(),
+    })),
+)(IncomesScreen)
 
-
-export default IncomesScreen;

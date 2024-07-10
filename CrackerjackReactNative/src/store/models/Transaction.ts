@@ -1,32 +1,20 @@
-import { db } from "../database";
+import { Model, Q } from '@nozbe/watermelondb'
+import { field, text, date, relation } from '@nozbe/watermelondb/decorators'
+import { database } from '../../..';
 
-export const tablename: string = 'transaction';
-export const idColumnName: string = 'transactionId';
+export class Transaction extends Model {
+    static table = 'transaction'
 
-export class Transaction {
-    transactionId?: number;
-    amount: number = 0;
-    balance: number = 0;
-    description: string = '';
-    date: Date = new Date();
-    expenseId?: number;
-    incomeId?: number;
-    paymentCount: number = 1;
+    @field('amount') amount
+    @field('balance') balance
+    @text('description') description
+    @date('date') date
+    @field('payment_count') paymentCount
+    @relation('expense', 'expense_id') expense
+    @relation('income', 'income_id') income
+
 }
 
 export const getCurrentBalance = async (): Promise<number> => {
-    return new Promise(async (resolve, reject) => {
-        (await db).transaction((txn: any) => {
-            txn.executeSql("SELECT `balance` FROM `transaction` ORDER BY `date` DESC LIMIT 1", [],
-                (status: any, data: any) => {
-                    let balance = 0;
-                    for (let i = 0; i < data.rows.length; i++) {
-                        let row = data.rows.item(i);
-                        balance = row['balance'];
-                        break;
-                    }
-                    resolve(balance);
-                }, (error: any) => { reject(error) })
-        });
-    });
+    return ((await database.get(Transaction.table).query(Q.sortBy('date', Q.desc), Q.take(1)))[0] as Transaction).balance;
 }

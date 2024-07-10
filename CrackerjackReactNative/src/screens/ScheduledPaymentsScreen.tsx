@@ -12,6 +12,7 @@ import {
 
 import IncomesScreen from "./IncomesScreen";
 import ExpensesScreen from "./ExpensesScreen";
+import { database } from "../..";
 
 interface propsInterface {
     navigation: any
@@ -27,12 +28,12 @@ const ScheduledPaymentsScreen = ({ navigation }: propsInterface) => {
         <Tabs>
             <TabScreen label="Income" icon="cash-multiple">
                 <View style={{ flex: 1 }}>
-                    <IncomesScreen navigation={navigation} />
+                    <IncomesScreen database={database} navigation={navigation} />
                 </View>
             </TabScreen>
             <TabScreen label="Expenses" icon="cart">
                 <View style={{ flex: 1 }}>
-                    <ExpensesScreen navigation={navigation} />
+                    <ExpensesScreen database={database} navigation={navigation} />
                 </View>
             </TabScreen>
         </Tabs>

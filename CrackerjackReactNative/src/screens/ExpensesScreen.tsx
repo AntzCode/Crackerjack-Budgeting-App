@@ -1,74 +1,36 @@
 
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { compose } from "redux";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { withObservables } from "@nozbe/watermelondb/react";
+
 import { Card, Divider, FAB, Icon, Text, TouchableRipple } from 'react-native-paper';
-import { get, set } from 'lodash';
-import { formatDate } from "date-fns";
 
 import TabulatedData, { convertRecordset } from "../components/TabulatedData";
+
 import { CurrencyFormat } from "../components/CurrencyFormat";
 import { brandStyles } from "../components/BrandStyles";
 
-import { generateForecastsRunningBalance } from "../store/models/Forecast";
-import { getCurrentBalance } from "../store/models/Transaction";
 import { Expense } from "../store/models/Expense";
-import { Income } from "../store/models/Income";
-
-import { db } from "../store/database";
 
 interface propsInterface {
-    navigation: any
+    navigation: any,
+    expensesObserved: Expense[]
 }
 
-export const ExpensesScreen = ({ navigation }: propsInterface) => {
+export const ExpensesScreen = ({ navigation, expensesObserved }: propsInterface) => {
 
-    const [expenses, setExpenses] = useState<Expense[]>([]);
-
-    useEffect(() => {
-        setTimeout(async () => {
-            (await db).transaction((txn: any) => {
-                txn.executeSql("SELECT * FROM `expense` WHERE `isRecurring` = 1 AND `deletedDate` IS NULL", [],
-                    (status: any, data: any) => {
-                        let items: Expense[] = [];
-                        for (let i = 0; i < data.rows.length; i++) {
-                            let row = data.rows.item(i);
-                            let expense = new Expense();
-                            Object.keys(row).forEach((keyname: string) => {
-                                set(expense, keyname, get(row, keyname));
-                            });
-                            items.push(expense);
-                        }
-                        setExpenses(items);
-                    }, (error: any) => { console.log('error: ', error) })
-            });
-        });
-
-    }, []);
+    const expenses = expensesObserved;
 
     const filterExpensesByPaymentFrequency = (dataset: Expense[], frequency: string) => {
         return [...dataset].filter((model: Expense) => model.paymentFrequency === frequency);
     }
 
     const RowFooterDetails = (props: any) => {
-        const payment: Income | Expense = props.payment;
+        const payment: Expense = props.payment;
 
         const deleteExpense = async (expense: Expense) => {
-            (await db).transaction(async (txn: any) => {
-                await txn.executeSql("UPDATE `expense` SET `deletedDate` = ? WHERE `expenseId` = ?",
-                    [formatDate(new Date(), 'yyyy-mm-dd HH:MM:ss'), expense.expenseId],
-                    () => { },
-                    () => { }
-                );
-            });
-            (await db).transaction(async (txn: any) => {
-                await txn.executeSql("DELETE FROM `forecast` WHERE `expenseId` = ?",
-                    [expense.expenseId],
-                    async () => {
-                        await generateForecastsRunningBalance(await getCurrentBalance());
-                    },
-                    () => { }
-                );
-            });
+            await expense.delete();
         }
 
         return <TouchableRipple style={{
@@ -204,4 +166,10 @@ export const expensesStyles = StyleSheet.create({
     }
 });
 
-export default ExpensesScreen;
+export default compose(
+    withObservables(['database'], ({ database }) => ({
+        expensesObserved: database.get(Expense.table).query(),
+    })),
+)(ExpensesScreen)
+// export default ExpensesScreen;
+

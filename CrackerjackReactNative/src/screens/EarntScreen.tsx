@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
-import { DatePickerInput } from 'react-native-paper-dates';
+import { isUndefined } from 'lodash';
+import { database } from '../..';
 
+import { paymentFrequencies } from '../constants/time';
 import LayoutDefault from './LayoutDefault';
+import { brandStyles } from '../components/BrandStyles';
 
+import { DatePickerInput } from 'react-native-paper-dates';
 import Dropdown, { DropdownOptionInterface } from '../components/forms/Dropdown';
 import TextInput from '../components/forms/TextInput';
 import Decimal from '../components/forms/Decimal';
@@ -11,13 +15,9 @@ import Numeric from '../components/forms/Numeric';
 import Submit from '../components/forms/Submit';
 import Switch from '../components/forms/Switch';
 
-import { Income, tablename as incomeTablename, idColumnName as incomeIdColumnName } from '../store/models/Income';
-import { getCurrentBalance } from '../store/models/Transaction';
-import { generateForecasts, generateForecastsRunningBalance } from '../store/models/Forecast';
+import { Income } from '../store/models/Income';
+import { Forecast } from '../store/models/Forecast';
 
-import { createRecord } from '../store/database';
-import { paymentFrequencies } from '../constants/time';
-import { brandStyles } from '../components/BrandStyles';
 
 interface propsInterface {
     navigation: any
@@ -43,7 +43,7 @@ const EarntScreen = ({ navigation }: propsInterface) => {
 
     const processSubmit = async () => {
 
-        let income = new Income();
+        // let income = new Income();
 
         if (description.length < 1) {
             Alert.alert('Description is empty');
@@ -55,23 +55,29 @@ const EarntScreen = ({ navigation }: propsInterface) => {
             return;
         }
 
-        income.paymentAmount = parseFloat(`${amount}`);
-        income.incomeTotal = parseFloat(`${total}`);
-        income.paymentCount = parseFloat(`${paymentsCount}`);
-        income.paymentFrequency = frequency.value;
-        income.description = description;
-        income.firstPaymentDate = firstPaymentDate;
-        income.createdDate = new Date();
-        income.isRecurring = isRecurring;
-        income.isIndefinite = isIndefinite;
+        try {
+            let income: Income | undefined;
+            await database.write(async () => {
+                income = await database.get<Income>(Income.table).create((income: Income) => {
+                    income.paymentAmount = parseFloat(`${amount}`);
+                    income.incomeTotal = parseFloat(`${total}`);
+                    income.paymentCount = parseFloat(`${paymentsCount}`);
+                    income.paymentFrequency = frequency.value;
+                    income.description = description;
+                    income.firstPaymentDate = firstPaymentDate;
+                    income.createdDate = new Date();
+                    income.isRecurring = isRecurring;
+                    income.isIndefinite = isIndefinite;
+                }) as Income;
+            });
+            if (!isUndefined(income)) {
+                await income.createForecast();
+                await Forecast.generateRunningBalance();
+            }
 
-        let result = await createRecord(incomeTablename, incomeIdColumnName, income);
-        income.incomeId = result.insertId;
-
-        let balance = await getCurrentBalance();
-
-        await generateForecasts(income);
-        await generateForecastsRunningBalance(balance);
+        } catch (error) {
+            console.log('error while trying to write: ', error);
+        }
 
         navigation.goBack();
 

@@ -1,4 +1,5 @@
 import { DropdownOptionInterface } from '../components/forms/Dropdown';
+import { add } from 'date-fns';
 
 const DefaultPaymentFrequency = 'w';
 
@@ -44,6 +45,27 @@ export const getFrequencyTitle = (frequency: string) => {
 
 export const getFrequencyMultiplier = (frequency: string) => {
     return paymentFrequenciesMultiplier.get(frequency);
+}
+
+export const calculatePaymentDate = (firstPaymentDate: Date, paymentCount: number, paymentFrequency: string) => {
+    switch (paymentFrequency) {
+        case 'd':
+            return add(firstPaymentDate, { days: paymentCount });
+        case 'w':
+            return add(firstPaymentDate, { weeks: paymentCount });
+        case 'f':
+            return add(firstPaymentDate, { weeks: paymentCount * 2 });
+        case 'm':
+            return add(firstPaymentDate, { months: paymentCount });
+        case 'm2':
+            return add(firstPaymentDate, { months: paymentCount * 2 });
+        case 'm3':
+            return add(firstPaymentDate, { months: paymentCount * 3 });
+        case 'y':
+            return add(firstPaymentDate, { years: paymentCount });
+        default:
+            return firstPaymentDate;
+    }
 }
 
 interface sortByFrequencyInterface {

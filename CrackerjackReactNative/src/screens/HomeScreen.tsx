@@ -10,6 +10,7 @@ import ForecastScreen from './ForecastScreen';
 import ScheduledPaymentsScreen from './ScheduledPaymentsScreen';
 import { db } from '../store/database';
 import TabulatedData, { convertRecordset } from '../components/TabulatedData';
+import { withDatabase } from '@nozbe/watermelondb/react';
 
 interface propsInterface {
     navigation: any
@@ -26,7 +27,7 @@ export const HomeScreenContent = ({ navigation }: propsInterface) => {
             (await db).transaction((txn: any) => {
                 txn.executeSql("SELECT * FROM `migration`", [], (sqlTxn: any, res: any) => {
                     if (res.rows.length > 0) {
-                        let items = [];
+                        let items: any[] = [];
                         for (let i = 0; i < res.rows.length; i++) {
                             items.push(res.rows.item(i));
                         }
@@ -112,7 +113,7 @@ export const HomeScreen = ({ navigation }: propsInterface): React.JSX.Element =>
                     ),
                 }}
             />
-            <Tab.Screen name="Forecast" component={ForecastScreen}
+            <Tab.Screen name="Forecast" component={withDatabase(ForecastScreen)}
                 options={{
                     tabBarLabel: 'Forecast',
                     tabBarIcon: ({ color }) => (

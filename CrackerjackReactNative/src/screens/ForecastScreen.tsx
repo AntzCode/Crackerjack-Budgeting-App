@@ -1,85 +1,42 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { get, set } from 'lodash';
+import { ScrollView, StyleSheet } from "react-native";
+import { compose, withObservables } from '@nozbe/watermelondb/react';
+import { Q } from "@nozbe/watermelondb";
 import { format as dateFormat } from 'date-fns';
 
 import TabulatedData, { convertRecordset } from "../components/TabulatedData";
 import { CurrencyFormat } from "../components/CurrencyFormat";
 
 import { Forecast } from "../store/models/Forecast";
-import ScheduledPaymentsScreen from "./ScheduledPaymentsScreen";
-
-import { db } from "../store/database";
 
 interface propsInterface {
-    navigation: any
+    navigation: any,
+    forecastsObserved: Forecast[]
 }
 
-const ForecastScreen = ({ navigation }: propsInterface) => {
+const ForecastScreen = ({ navigation, forecastsObserved }: propsInterface) => {
 
-    const Stack = createNativeStackNavigator();
-    const [ledger, setLedger] = useState<Forecast[]>([]);
-
-    const [tabRoutes] = useState([
-        { key: 'payments', title: 'Payments' },
-        { key: 'plans', title: 'Plans' },
-    ]);
+    const ledger = forecastsObserved;
+    const [ledgerData, setLedgerData] = useState<any>(convertRecordset([]));
 
     useEffect(() => {
-        setTimeout(async () => {
-
-            (await db).transaction((txn: any) => {
-                txn.executeSql("SELECT * FROM `forecast` ORDER BY `date` ASC", [],
-                    (status: any, data: any) => {
-                        let items: Forecast[] = [];
-                        for (let i = 0; i < data.rows.length; i++) {
-                            let row = data.rows.item(i);
-                            let forecast = new Forecast();
-                            Object.keys(row).forEach((keyname: string) => {
-                                set(forecast, keyname, get(row, keyname));
-                            });
-                            items[i] = forecast;
-                        }
-                        setLedger(items);
-                    }, (error: any) => { console.log('error: ', error) })
-            });
-        });
-    }, []);
-
-    const ledgerData = () => {
-        let ledgerData = ledger.map((forecast: Forecast) => {
+        setLedgerData(convertRecordset([...ledger.map((forecast: Forecast) => {
             return {
-                Date: dateFormat(forecast.date, 'yyyy-mm-dd'),
+                Date: dateFormat(forecast.date, 'yyyy-MM-dd'),
                 Description: forecast.description,
                 Amount: <CurrencyFormat>{forecast.amount}</CurrencyFormat>,
                 Balance: <CurrencyFormat>{forecast.balance}</CurrencyFormat>
             }
-        });
-        return convertRecordset(ledgerData);
-    }
+        })]));
+    }, [ledger]);
 
-    const PaymentsView = () => (
-        <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={ForecastStyles.container}>
-            <ScheduledPaymentsScreen navigation={navigation} />
-        </ScrollView>
-    );
-
-    const PlansView = () => (
-        <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={ForecastStyles.container}>
-            <TabulatedData bodyData={ledgerData().bodyData} headerData={ledgerData().headerData} />
-        </ScrollView>
-    );
-
-    return <View style={{ display: 'flex', flex: 1, backgroundColor: 'green', height: '100%' }}>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Plans" component={PlansView} />
-        </Stack.Navigator>
-    </View>;
+    return <ScrollView contentInsetAdjustmentBehavior="scrollableAxes" style={forecastStyles.container}>
+        <TabulatedData bodyData={ledgerData.bodyData} headerData={ledgerData.headerData} />
+    </ScrollView>
 
 }
 
-export const ForecastStyles = StyleSheet.create({
+export const forecastStyles = StyleSheet.create({
     container: {
 
     },
@@ -95,5 +52,9 @@ export const ForecastStyles = StyleSheet.create({
     }
 });
 
-export default ForecastScreen;
+export default compose(
+    withObservables(['database'], ({ database }) => ({
+        forecastsObserved: database.get(Forecast.table).query(Q.sortBy('date', Q.asc), Q.take(100)).observe()
+    })),
+)(ForecastScreen)
 
