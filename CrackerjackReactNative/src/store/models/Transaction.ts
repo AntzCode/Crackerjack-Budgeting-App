@@ -9,9 +9,7 @@ export class Transaction extends Model {
     @field('balance') balance
     @text('description') description
     @date('date') date
-    @field('payment_count') paymentCount
-    @relation('expense', 'expense_id') expense
-    @relation('income', 'income_id') income
+    @relation('payment', 'payment_id') payment
 
 }
 

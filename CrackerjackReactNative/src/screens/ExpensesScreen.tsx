@@ -11,25 +11,27 @@ import TabulatedData, { convertRecordset } from "../components/TabulatedData";
 import { CurrencyFormat } from "../components/CurrencyFormat";
 import { brandStyles } from "../components/BrandStyles";
 
-import { Expense } from "../store/models/Expense";
+import { PaymentType, ScheduledPayment } from "../store/models/ScheduledPayment";
+import { Q } from "@nozbe/watermelondb";
 
 interface propsInterface {
     navigation: any,
-    expensesObserved: Expense[]
+    expensesObserved: ScheduledPayment[]
 }
 
 export const ExpensesScreen = ({ navigation, expensesObserved }: propsInterface) => {
 
     const expenses = expensesObserved;
 
-    const filterExpensesByPaymentFrequency = (dataset: Expense[], frequency: string) => {
-        return [...dataset].filter((model: Expense) => model.paymentFrequency === frequency);
+    const filterExpensesByPaymentFrequency = (dataset: ScheduledPayment[], frequency: string) => {
+        return [...dataset].filter((model: ScheduledPayment) => model.frequency === frequency);
     }
 
     const RowFooterDetails = (props: any) => {
-        const payment: Expense = props.payment;
+        
+        const expense: ScheduledPayment = props.expense;
 
-        const deleteExpense = async (expense: Expense) => {
+        const deleteExpense = async (expense: ScheduledPayment) => {
             await expense.delete();
         }
 
@@ -37,7 +39,7 @@ export const ExpensesScreen = ({ navigation, expensesObserved }: propsInterface)
             flex: 1,
             alignContent: 'center',
             justifyContent: 'center'
-        }} onPress={() => deleteExpense(payment as Expense)}>
+        }} onPress={() => deleteExpense(expense as ScheduledPayment)}>
             <Icon source="trash-can"
                 color={brandStyles.dangerButton.backgroundColor}
                 size={30} />
@@ -45,13 +47,13 @@ export const ExpensesScreen = ({ navigation, expensesObserved }: propsInterface)
     }
 
     const TabulatedExpenseGroup = ({ frequency, expenses }: any) => {
-        const headerData = false;// convertRecordset([{ Description: '', Amount: '' }]).headerData;
-        const recordSet = convertRecordset(filterExpensesByPaymentFrequency(expenses, frequency).map((expense: Expense) => ({
+        const headerData = false;
+        const recordSet = convertRecordset(filterExpensesByPaymentFrequency(expenses, frequency).map((expense: ScheduledPayment) => ({
             description: expense.description,
-            amount: <CurrencyFormat>{expense.paymentAmount}</CurrencyFormat>,
+            amount: <CurrencyFormat>{expense.amount}</CurrencyFormat>,
             onPress: () => { },
             onLongPress: () => { },
-            onShowFooter: <RowFooterDetails payment={expense}></RowFooterDetails>
+            onShowFooter: <RowFooterDetails expense={expense}></RowFooterDetails>
         })));
 
         return <TabulatedData headerData={headerData}
@@ -168,7 +170,7 @@ export const expensesStyles = StyleSheet.create({
 
 export default compose(
     withObservables(['database'], ({ database }) => ({
-        expensesObserved: database.get(Expense.table).query(),
+        expensesObserved: database.get(ScheduledPayment.table).query(Q.where('payment_type', Q.eq(PaymentType.expense))),
     })),
 )(ExpensesScreen)
 // export default ExpensesScreen;

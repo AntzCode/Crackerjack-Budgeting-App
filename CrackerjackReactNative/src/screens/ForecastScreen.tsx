@@ -7,25 +7,25 @@ import { format as dateFormat } from 'date-fns';
 import TabulatedData, { convertRecordset } from "../components/TabulatedData";
 import { CurrencyFormat } from "../components/CurrencyFormat";
 
-import { Forecast } from "../store/models/Forecast";
+import { Payment } from "../store/models/Payment";
 
 interface propsInterface {
     navigation: any,
-    forecastsObserved: Forecast[]
+    paymentsObserved: Payment[]
 }
 
-const ForecastScreen = ({ navigation, forecastsObserved }: propsInterface) => {
+const ForecastScreen = ({ navigation, paymentsObserved }: propsInterface) => {
 
-    const ledger = forecastsObserved;
+    const ledger = paymentsObserved;
     const [ledgerData, setLedgerData] = useState<any>(convertRecordset([]));
 
     useEffect(() => {
-        setLedgerData(convertRecordset([...ledger.map((forecast: Forecast) => {
+        setLedgerData(convertRecordset([...ledger.map((payment: Payment) => {
             return {
-                Date: dateFormat(forecast.date, 'yyyy-MM-dd'),
-                Description: forecast.description,
-                Amount: <CurrencyFormat>{forecast.amount}</CurrencyFormat>,
-                Balance: <CurrencyFormat>{forecast.balance}</CurrencyFormat>
+                Date: dateFormat(payment.date, 'yyyy-MM-dd'),
+                Description: payment.description,
+                Amount: <CurrencyFormat>{payment.amount}</CurrencyFormat>,
+                Balance: <CurrencyFormat>{payment.balance}</CurrencyFormat>
             }
         })]));
     }, [ledger]);
@@ -54,7 +54,7 @@ export const forecastStyles = StyleSheet.create({
 
 export default compose(
     withObservables(['database'], ({ database }) => ({
-        forecastsObserved: database.get(Forecast.table).query(Q.sortBy('date', Q.asc), Q.take(100)).observe()
+        paymentsObserved: database.get(Payment.table).query(Q.sortBy('date', Q.asc), Q.take(100)).observe()
     })),
 )(ForecastScreen)
 

@@ -9,25 +9,27 @@ import TabulatedData, { convertRecordset } from "../components/TabulatedData";
 import { CurrencyFormat } from "../components/CurrencyFormat";
 import { brandStyles } from "../components/BrandStyles";
 
-import { Income } from "../store/models/Income";
+import { PaymentType, ScheduledPayment } from "../store/models/ScheduledPayment";
+import { Q } from "@nozbe/watermelondb";
 
 interface propsInterface {
     navigation: any,
-    incomesObserved: Income[]
+    incomesObserved: ScheduledPayment[]
 }
 
 export const IncomesScreen = ({ navigation, incomesObserved }: propsInterface) => {
 
     const incomes = incomesObserved;
 
-    const filterIncomesByPaymentFrequency = (dataset: Income[], frequency: string) => {
-        return [...dataset ?? []].filter((model: Income) => model.paymentFrequency === frequency);
+    const filterIncomesByPaymentFrequency = (dataset: ScheduledPayment[], frequency: string) => {
+        return [...dataset ?? []].filter((model: ScheduledPayment) => model.frequency === frequency);
     }
 
     const RowFooterDetails = (props: any) => {
-        const payment: Income = props.payment;
+        
+        const income: ScheduledPayment = props.income;
 
-        const deleteIncome = async (income: Income) => {
+        const deleteIncome = async (income: ScheduledPayment) => {
             await income.delete();
         }
 
@@ -35,7 +37,7 @@ export const IncomesScreen = ({ navigation, incomesObserved }: propsInterface) =
             flex: 1,
             alignContent: 'center',
             justifyContent: 'center'
-        }} onPress={() => deleteIncome(payment as Income)}>
+        }} onPress={() => deleteIncome(income as ScheduledPayment)}>
             <Icon source="trash-can"
                 color={brandStyles.dangerButton.backgroundColor}
                 size={30} />
@@ -45,12 +47,12 @@ export const IncomesScreen = ({ navigation, incomesObserved }: propsInterface) =
 
     const TabulatedIncomeGroup = ({ frequency, incomes }: any) => {
         const headerData = false; //convertRecordset([{ Description: '', Amount: '' }]).headerData;
-        const recordSet = convertRecordset(filterIncomesByPaymentFrequency(incomes, frequency).map((income: Income) => ({
+        const recordSet = convertRecordset(filterIncomesByPaymentFrequency(incomes, frequency).map((income: ScheduledPayment) => ({
             description: income.description,
-            amount: <CurrencyFormat>{income.paymentAmount}</CurrencyFormat>,
+            amount: <CurrencyFormat>{income.amount}</CurrencyFormat>,
             onPress: () => { },
             onLongPress: () => { },
-            onShowFooter: <RowFooterDetails payment={income}></RowFooterDetails>
+            onShowFooter: <RowFooterDetails income={income}></RowFooterDetails>
         })));
 
         return <TabulatedData headerData={headerData}
@@ -166,7 +168,7 @@ export const incomesStyles = StyleSheet.create({
 
 export default compose(
     withObservables(['database'], ({ database }) => ({
-        incomesObserved: database.get(Income.table).query(),
+        incomesObserved: database.get(ScheduledPayment.table).query(Q.where('payment_type', Q.eq(PaymentType.income))),
     })),
 )(IncomesScreen)
 

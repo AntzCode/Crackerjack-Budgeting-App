@@ -15,8 +15,8 @@ import Numeric from '../components/forms/Numeric';
 import Submit from '../components/forms/Submit';
 import Switch from '../components/forms/Switch';
 
-import { Income } from '../store/models/Income';
-import { Forecast } from '../store/models/Forecast';
+import { Payment } from '../store/models/Payment';
+import { PaymentType, ScheduledPayment } from '../store/models/ScheduledPayment';
 
 
 interface propsInterface {
@@ -30,20 +30,18 @@ const EarntScreen = ({ navigation }: propsInterface) => {
     const [description, setDescription] = useState<string>('');
     const [frequency, setFrequency] = useState<DropdownOptionInterface>(paymentFrequencies.getDefault());
     const [isIndefinite, setIsIndefinite] = useState<boolean>(true);
-    const [paymentsCount, setPaymentsCount] = useState<number>(1);
+    const [maxOrdinals, setMaxOrdinals] = useState<number>(1);
     const [total, setTotal] = useState<number>(0.00);
     const [firstPaymentDate, setFirstPaymentDate] = useState<Date>(new Date());
 
     useEffect(() => {
         setTotal(() => {
-            let _total = parseFloat(`${amount}`) * parseFloat(`${paymentsCount}`);
+            let _total = parseFloat(`${amount}`) * parseFloat(`${maxOrdinals}`);
             return _total;
         });
-    }, [amount, paymentsCount, frequency])
+    }, [amount, maxOrdinals, frequency])
 
     const processSubmit = async () => {
-
-        // let income = new Income();
 
         if (description.length < 1) {
             Alert.alert('Description is empty');
@@ -56,23 +54,25 @@ const EarntScreen = ({ navigation }: propsInterface) => {
         }
 
         try {
-            let income: Income | undefined;
+            let income: ScheduledPayment | undefined;
             await database.write(async () => {
-                income = await database.get<Income>(Income.table).create((income: Income) => {
-                    income.paymentAmount = parseFloat(`${amount}`);
-                    income.incomeTotal = parseFloat(`${total}`);
-                    income.paymentCount = parseFloat(`${paymentsCount}`);
-                    income.paymentFrequency = frequency.value;
+                income = await database.get<ScheduledPayment>(ScheduledPayment.table).create((income: ScheduledPayment) => {
+                    income.paymentType = PaymentType.income;
+                    income.amount = parseFloat(`${amount}`);
+                    income.total = parseFloat(`${total}`);
+                    income.maxOrdinals = parseFloat(`${maxOrdinals}`);
+                    income.frequency = frequency.value;
                     income.description = description;
                     income.firstPaymentDate = firstPaymentDate;
                     income.createdDate = new Date();
+                    income.deletedDate = null;
                     income.isRecurring = isRecurring;
                     income.isIndefinite = isIndefinite;
-                }) as Income;
+                }) as ScheduledPayment
             });
             if (!isUndefined(income)) {
-                await income.createForecast();
-                await Forecast.generateRunningBalance();
+                await income.createPayments();
+                await Payment.generateRunningBalance();
             }
 
         } catch (error) {
@@ -130,8 +130,8 @@ const EarntScreen = ({ navigation }: propsInterface) => {
                         onValueChange={(value: boolean) => setIsIndefinite(value)}
                         onFalseContent={<>
                             <Numeric label="Number of Payments"
-                                value={paymentsCount}
-                                onChangeText={setPaymentsCount}
+                                value={maxOrdinals}
+                                onChangeText={setMaxOrdinals}
                                 style={earntStyles.recurringInput} />
                             <Decimal readOnly label="Total"
                                 value={total}

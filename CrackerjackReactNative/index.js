@@ -10,9 +10,8 @@ import { Database } from '@nozbe/watermelondb'
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite'
 
 import schema from './src/store/schema'
-import { Income } from './src/store/models/Income';
-import { Expense } from './src/store/models/Expense';
-import { Forecast } from './src/store/models/Forecast';
+import { Payment } from './src/store/models/Payment';
+import { ScheduledPayment } from './src/store/models/ScheduledPayment';
 import { Transaction } from './src/store/models/Transaction';
 
 // First, create the adapter to the underlying database:
@@ -36,10 +35,10 @@ const adapter = new SQLiteAdapter({
 export const database = new Database({
     adapter,
     modelClasses: [
-        Income,
-        Expense,
-        Forecast,
-        Transaction
+        Payment,
+        Transaction,
+        ScheduledPayment,
+        Transaction,
     ],
 })
 AppRegistry.registerComponent(appName, () => App);

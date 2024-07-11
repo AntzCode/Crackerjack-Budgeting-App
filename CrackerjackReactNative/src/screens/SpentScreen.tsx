@@ -15,8 +15,8 @@ import Numeric from '../components/forms/Numeric';
 import Submit from '../components/forms/Submit';
 import Switch from '../components/forms/Switch';
 
-import { Expense } from '../store/models/Expense';
-import { Forecast } from '../store/models/Forecast';
+import { PaymentType, ScheduledPayment } from '../store/models/ScheduledPayment';
+import { Payment } from '../store/models/Payment';
 
 interface propsInterface {
     navigation: any
@@ -29,16 +29,16 @@ const SpentScreen = ({ navigation }: propsInterface) => {
     const [description, setDescription] = useState<string>('');
     const [frequency, setFrequency] = useState<DropdownOptionInterface>(paymentFrequencies.getDefault());
     const [isIndefinite, setIsIndefinite] = useState<boolean>(true);
-    const [paymentsCount, setPaymentsCount] = useState<number>(1);
+    const [maxOrdinals, setMaxOrdinals] = useState<number>(1);
     const [total, setTotal] = useState<number>(0.00);
     const [firstPaymentDate, setFirstPaymentDate] = useState<Date>(new Date());
 
     useEffect(() => {
         setTotal(() => {
-            let _total = parseFloat(`${amount}`) * parseFloat(`${paymentsCount}`);
+            let _total = parseFloat(`${amount}`) * parseFloat(`${maxOrdinals}`);
             return _total;
         });
-    }, [amount, paymentsCount, frequency])
+    }, [amount, maxOrdinals, frequency])
 
     const processSubmit = async () => {
 
@@ -54,24 +54,25 @@ const SpentScreen = ({ navigation }: propsInterface) => {
 
 
         try {
-            let expense: Expense | undefined;
+            let expense: ScheduledPayment | undefined;
             await database.write(async () => {
-                expense = await database.get<Expense>(Expense.table).create((expense: Expense) => {
-                    expense.paymentAmount = parseFloat(`${amount}`);
-                    expense.expenseTotal = parseFloat(`${total}`);
-                    expense.paymentCount = parseFloat(`${paymentsCount}`);
-                    expense.paymentFrequency = frequency.value;
+                expense = await database.get<ScheduledPayment>(ScheduledPayment.table).create((expense: ScheduledPayment) => {
+                    expense.paymentType = PaymentType.expense;
+                    expense.amount = parseFloat(`${amount}`);
+                    expense.total = parseFloat(`${total}`);
+                    expense.maxOrdinals = parseFloat(`${maxOrdinals}`);
+                    expense.frequency = frequency.value;
                     expense.description = description;
                     expense.firstPaymentDate = firstPaymentDate;
                     expense.createdDate = new Date();
                     expense.isRecurring = isRecurring;
                     expense.isIndefinite = isIndefinite;
-                }) as Expense;
+                }) as ScheduledPayment;
             });
 
             if (!isUndefined(expense)) {
-                await expense.createForecast();
-                await Forecast.generateRunningBalance();
+                await expense.createPayments();
+                await Payment.generateRunningBalance();
             }
         } catch (error) {
             console.log('error while trying to write: ', error);
@@ -119,7 +120,7 @@ const SpentScreen = ({ navigation }: propsInterface) => {
                         value={isIndefinite}
                         onValueChange={setIsIndefinite}
                         onFalseContent={<>
-                            <Numeric label="Number of Payments" value={paymentsCount} onChangeText={setPaymentsCount} />
+                            <Numeric label="Number of Payments" value={maxOrdinals} onChangeText={setMaxOrdinals} />
                             <Decimal label="Total" value={total} onChangeText={() => { }} readOnly />
                         </>}
                     />}

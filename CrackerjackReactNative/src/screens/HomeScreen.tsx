@@ -76,7 +76,7 @@ export const HomeScreenContent = ({ navigation }: propsInterface) => {
                 <TouchableRipple onPress={() => navigation.push("Ledger")} style={homeStyles.footerContainerButton}>
                     <TileButton imageSource={require(`../assets/images/HomePage/History-Large.png`)}>Ledger</TileButton>
                 </TouchableRipple>
-                <TouchableRipple onPress={() => navigation.push('Forecast')} style={homeStyles.footerContainerButton}>
+                <TouchableRipple onPress={() => navigation.push('ScheduledPayments')} style={homeStyles.footerContainerButton}>
                     <TileButton imageSource={require(`../assets/images/HomePage/Plan-Large.png`)}>Plans</TileButton>
                 </TouchableRipple>
             </View>

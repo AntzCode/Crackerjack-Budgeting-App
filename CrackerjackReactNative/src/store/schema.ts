@@ -4,12 +4,13 @@ export default appSchema({
     version: 1,
     tables: [
         tableSchema({
-            name: 'expense',
+            name: 'scheduled_payment',
             columns: [
-                { name: 'payment_amount', type: 'number' },
-                { name: 'expense_total', type: 'number' },
-                { name: 'payment_count', type: 'number', isOptional: true },
-                { name: 'payment_frequency', type: 'string' },
+                { name: 'payment_type', type: 'string' },
+                { name: 'amount', type: 'number' },
+                { name: 'total', type: 'number' },
+                { name: 'max_ordinals', type: 'number', isOptional: true },
+                { name: 'frequency', type: 'string' },
                 { name: 'description', type: 'string' },
                 { name: 'first_payment_date', type: 'number' },
                 { name: 'created_date', type: 'number' },
@@ -19,30 +20,15 @@ export default appSchema({
             ]
         }),
         tableSchema({
-            name: 'income',
+            name: 'payment',
             columns: [
-                { name: 'payment_amount', type: 'number' },
-                { name: 'income_total', type: 'number' },
-                { name: 'payment_count', type: 'number', isOptional: true },
-                { name: 'payment_frequency', type: 'string' },
-                { name: 'description', type: 'string' },
-                { name: 'first_payment_date', type: 'number' },
-                { name: 'created_date', type: 'number' },
-                { name: 'deleted_date', type: 'number', isOptional: true },
-                { name: 'is_recurring', type: 'boolean' },
-                { name: 'is_indefinite', type: 'boolean' },
-            ]
-        }),
-        tableSchema({
-            name: 'forecast',
-            columns: [
+                { name: 'payment_type', type: 'string' },
                 { name: 'amount', type: 'number' },
                 { name: 'balance', type: 'number' },
                 { name: 'description', type: 'string' },
                 { name: 'date', type: 'number' },
-                { name: 'payment_count', type: 'number' },
-                { name: 'expense_id', type: 'string', isOptional: true },
-                { name: 'income_id', type: 'string', isOptional: true },
+                { name: 'scheduled_payment_ordinal', type: 'number' },
+                { name: 'scheduled_payment_id', type: 'string', isOptional: true },
             ]
         }),
         tableSchema({
@@ -52,9 +38,7 @@ export default appSchema({
                 { name: 'balance', type: 'number' },
                 { name: 'description', type: 'string' },
                 { name: 'date', type: 'number' },
-                { name: 'payment_count', type: 'number' },
-                { name: 'expense_id', type: 'string', isOptional: true },
-                { name: 'income_id', type: 'string', isOptional: true },
+                { name: 'payment_id', type: 'string', isOptional: true },
             ]
         })
     ]
