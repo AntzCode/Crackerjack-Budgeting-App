@@ -1,7 +1,8 @@
 import { Text } from "react-native";
 
 export interface propsInterface {
-    children: number
+    children: number,
+    style?: any
 }
 
 export const defaultProps = {
@@ -16,5 +17,5 @@ export const currencyFormat = (value: number, locale: string = 'en-NZ', currency
 
 export const CurrencyFormat = function (props: propsInterface) {
     props = { ...defaultProps, ...props };
-    return <Text>{currencyFormat(props.children)}</Text>
+    return <Text style={{ ...props.style ?? {} }}>{currencyFormat(props.children)}</Text>
 }

@@ -1,5 +1,5 @@
 import { DropdownOptionInterface } from '../components/forms/Dropdown';
-import { add } from 'date-fns';
+import { add, addDays } from 'date-fns';
 
 const DefaultPaymentFrequency = 'w';
 
@@ -92,3 +92,5 @@ export const sortByFrequency = (modelA: sortByFrequencyInterface, modelB: sortBy
     }
     return 0;
 }
+
+

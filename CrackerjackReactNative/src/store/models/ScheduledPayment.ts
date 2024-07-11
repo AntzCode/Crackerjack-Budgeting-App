@@ -12,7 +12,7 @@ export enum PaymentType {
 export class ScheduledPayment extends Model {
     static table = 'scheduled_payment'
 
-    @text('payment_type') paymentType 
+    @text('payment_type') paymentType
     @field('amount') amount
     @field('total') total
     @field('max_ordinals') maxOrdinals
@@ -28,7 +28,7 @@ export class ScheduledPayment extends Model {
     async delete() {
         let deletedPayments = (await this.database.get<Payment>(Payment.table).query(Q.where('scheduled_payment_id', this.id)))
             .map((payment: Payment) => payment.prepareDestroyPermanently());
-        await this.database.batch(...deletedPayments, this.prepareMarkAsDeleted());
+        await this.database.batch([...deletedPayments, this.prepareMarkAsDeleted()]);
     }
 
     @writer async createPayments() {

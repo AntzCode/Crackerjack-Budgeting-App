@@ -19,6 +19,8 @@ interface TabulatedDataProps {
     rowFooters?: any[];
     emptyMessage?: string;
     options?: TabulatedDataOptions;
+    containerStyle?: any;
+
 }
 
 /**
@@ -131,7 +133,7 @@ const TabulatedData = (props: TabulatedDataProps) => {
     return (<>
         {props.bodyData.length < 1
             ? <View style={TabulatedDataStyles.emptyMessageContainer}><Text style={TabulatedDataStyles.emptyMessageText}>{props.emptyMessage ?? 'No records'}</Text></View>
-            : <DataTable style={TabulatedDataStyles.tableContainer}>
+            : <DataTable style={{...TabulatedDataStyles.tableContainer, ...(props.containerStyle ?? {})}}>
                 {props.headerData && <DataTable.Header style={TabulatedDataStyles.tableHeaderRow}>
                     {props.headerData.map((cellContent: string | number, iKey: number) => <DataTable.Title style={{
                         ...TabulatedDataStyles.tableHeaderCell,

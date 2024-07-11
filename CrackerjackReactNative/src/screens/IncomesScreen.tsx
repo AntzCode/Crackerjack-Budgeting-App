@@ -11,6 +11,7 @@ import { brandStyles } from "../components/BrandStyles";
 
 import { PaymentType, ScheduledPayment } from "../store/models/ScheduledPayment";
 import { Q } from "@nozbe/watermelondb";
+import { Payment } from "../store/models/Payment";
 
 interface propsInterface {
     navigation: any,
@@ -26,11 +27,12 @@ export const IncomesScreen = ({ navigation, incomesObserved }: propsInterface) =
     }
 
     const RowFooterDetails = (props: any) => {
-        
+
         const income: ScheduledPayment = props.income;
 
         const deleteIncome = async (income: ScheduledPayment) => {
             await income.delete();
+            await Payment.generateRunningBalance();
         }
 
         return <TouchableRipple style={{
